@@ -24,38 +24,25 @@ Projeto-Integrador/
 │
 ├── assets/
 │   ├── css/
-│   │   ├── style.css
-│   │   ├── login.css
-│   │   └── dashboard.css
+│   │   ├── exemplo.css
 │   │
 │   ├── js/
-│   │   ├── app.js
-│   │   ├── login.js
-│   │   ├── cadastro.js
-│   │   └── utils.js
+│   │   ├── exemplo.js
 │   │
 │   ├── img/
 │   │
 │   └── icons/
 │
 ├── pages/
-│   ├── login.html
-│   ├── cadastro.html
-│   ├── dashboard.html
-│   └── perfil.html
+│   └── exemplo.html
 │
 ├── database/
-│   ├── 01_create_tables.sql
-│   ├── 02_inserts.sql
-│   ├── 03_views.sql
-│   ├── 04_procedures.sql
-│   └── 05_consultas.sql
 │
 ├── docs/
-│   ├── DER.pdf
-│   ├── MER.pdf
-│   ├── requisitos.md
-│   └── manual.md
+│   ├── exemplo.pdf
+│   ├── exemplo.pdf
+│   ├── exemplo.md
+│   └── exemplo.md
 │
 ├── index.html
 ├── README.md
