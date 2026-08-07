@@ -11,6 +11,12 @@ Sistema desenvolvido para o Projeto Integrador da faculdade utilizando HTML, CSS
 - Oracle Database
 - VS Code
 
+## 📌 Trello
+
+Acompanhe o planejamento e o andamento do projeto no Trello:
+
+[🔗 Acessar o Trello do Projeto]([COLE_AQUI_O_LINK_DO_TRELLO](https://trello.com/invite/b/6a7661fe599568bcdcff61ea/ATTI30686d90b0e3e293386b88f4088521da966B37B2/projeto-integrador-2))
+
 ## 📁 Estrutura do Projeto
 
 ```
