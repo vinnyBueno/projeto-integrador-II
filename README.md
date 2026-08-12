@@ -62,3 +62,4 @@ Projeto-Integrador/
 - Bruna Nascimento Savelli
 - Rafaela Lorena da Luz Antunes
 - Raquel Brito Jacomini
+- Vinicius Da Silva Bueno
