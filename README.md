@@ -1,14 +1,14 @@
 # projeto-integrador-II
 
 ## 📖 Descrição
-Sistema desenvolvido para o Projeto Integrador da faculdade utilizando HTML, CSS, JavaScript e Oracle Database.
+Sistema desenvolvido para o Projeto Integrador da faculdade utilizando HTML, CSS, JavaScript e MySQL Database.
 
 ## 🚀 Tecnologias
 
 - HTML5
 - CSS3
 - JavaScript
-- Oracle Database
+- MySQL Database
 - VS Code
 
 ## 📌 Trello
@@ -20,31 +20,17 @@ Acompanhe o planejamento e o andamento do projeto no Trello:
 ## 📁 Estrutura do Projeto
 
 ```
-Projeto-Integrador/
+projeto-integrador-II/
 │
-├── assets/
-│   ├── css/
-│   │   ├── exemplo.css
-│   │
-│   ├── js/
-│   │   ├── exemplo.js
-│   │
-│   ├── img/
-│   │
-│   └── icons/
+├── backend/
+│   ├── middleware/
+│   │   └── auth.js        
+│   ├── db.js              
+│   ├── package.json
+│   └── package-lock.json
 │
-├── pages/
-│   └── exemplo.html
+├── frontend/              
 │
-├── database/
-│
-├── docs/
-│   ├── exemplo.pdf
-│   ├── exemplo.pdf
-│   ├── exemplo.md
-│   └── exemplo.md
-│
-├── index.html
 ├── README.md
 └── .gitignore
 ```
@@ -58,7 +44,6 @@ Projeto-Integrador/
 
 ## 👥 Integrantes
 
-- Anita Oliveira Barbosa
 - Bruna Nascimento Savelli
 - Rafaela Lorena da Luz Antunes
 - Raquel Brito Jacomini
