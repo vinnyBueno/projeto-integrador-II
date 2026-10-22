@@ -113,7 +113,7 @@ class AtendimentoRepository {
                 idPaciente: dados.idPaciente,
                 idProfissional: dados.idProfissional,
                 dataAtendimento: dados.dataAtendimento,
-                horaInicio: dados.horaInicio || null,
+                horaInicio: dados.horaInicio,
                 horaFim: dados.horaFim || null,
                 status: dados.status
             },
