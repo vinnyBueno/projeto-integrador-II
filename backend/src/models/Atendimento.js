@@ -1,7 +1,7 @@
 const AtendimentoRepository = require('../repositories/AtendimentoRepository');
 
 class Atendimento {
-    static STATUS_PERMITIDOS = [ 'Agendado', 'Em Andamento', 'Finalizado', 'Cancelado'];
+    static STATUS_PERMITIDOS = ['Agendado', 'Em Andamento', 'Finalizado', 'Cancelado'];
 
     // Valida os dados do atendimento
     static async validarDados(dados) {
@@ -85,10 +85,20 @@ class Atendimento {
             minutos >= 0 && minutos <= 59;
     }
 
-    // CREATE
+    
+    // CREATE: cadastrar atendimento
     static async cadastrar(dados) {
-        const dadosValidados = await this.validarDados(dados);
+        // O atendimento ainda não começou
+        const dadosAtendimento = {
+            ...dados,
+            horaInicio: null,
+            horaFim: null
+        };
 
+        // Valida os dados do atendimento
+        const dadosValidados = await this.validarDados(dadosAtendimento);
+
+        // Salva no banco de dados
         const id = await AtendimentoRepository.criar(dadosValidados);
 
         return {
@@ -107,7 +117,7 @@ class Atendimento {
         return await AtendimentoRepository.buscarPorId(Number(id));
     }
 
-    // UPDATE
+    // UPDATE: atualizar atendimento
     static async atualizar(id, dados) {
         id = Number(id);
 
@@ -115,16 +125,55 @@ class Atendimento {
             throw new Error('ID do atendimento inválido.');
         }
 
+        // Busca o atendimento cadastrado
         const atendimentoExistente = await this.buscarPorId(id);
 
         if (!atendimentoExistente) {
             return null;
         }
 
-        const dadosValidados = await this.validarDados(dados);
+        // Mantém os valores antigos dos campos não enviados
+        const dadosAtualizados = {
+            idPaciente: dados.idPaciente ?? atendimentoExistente.idPaciente,
+            idProfissional: dados.idProfissional ?? atendimentoExistente.idProfissional,
+            dataAtendimento: dados.dataAtendimento ?? atendimentoExistente.dataAtendimento,
+            horaInicio: dados.horaInicio ?? atendimentoExistente.horaInicio,
+            horaFim: dados.horaFim ?? atendimentoExistente.horaFim,
+            status: dados.status ?? atendimentoExistente.status
+        };
 
+        
+        // Obtém o horário atual no formato HH:MM
+        const agora = new Date();
+
+        const horaAtual = [
+            String(agora.getHours()).padStart(2, '0'),
+            String(agora.getMinutes()).padStart(2, '0')
+        ].join(':');
+
+        // Registra o início quando mudar para Em Andamento
+        if (
+            dados.status === 'Em Andamento' &&
+            atendimentoExistente.status !== 'Em Andamento'
+        ) {
+            dadosAtualizados.horaInicio = horaAtual;
+        }
+
+        // Registra o término quando mudar para Finalizado
+        if (
+            dados.status === 'Finalizado' &&
+            atendimentoExistente.status !== 'Finalizado'
+        ) {
+            dadosAtualizados.horaFim = horaAtual;
+        }
+
+        // Valida os dados completos
+        const dadosValidados = await this.validarDados(dadosAtualizados);
+
+        // Salva as alterações
         await AtendimentoRepository.atualizar(id, dadosValidados);
 
+        // Retorna o atendimento atualizado
         return await this.buscarPorId(id);
     }
 
