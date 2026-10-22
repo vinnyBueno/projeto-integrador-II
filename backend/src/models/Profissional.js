@@ -1,26 +1,13 @@
-const oracledb = require('oracledb');
 const bcrypt = require('bcrypt');
-const { executar } = require('../config/database');
+const ProfissionalRepository = require('../repositories/ProfissionalRepository');
 
 class Profissional {
-    static FUNCOES_PERMITIDAS = [
-        'RECEPCIONISTA',
-        'MEDICO',
-        'ENFERMEIRO'
-    ];
+    static FUNCOES_PERMITIDAS = ['RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'];
 
-    // CREATE: cadastrar profissional
-    static async cadastrar({
-        nome,
-        email,
-        senha,
-        registroProfissional,
-        tipoFuncao
-    }) {
+    // CREATE
+    static async cadastrar({ nome, email, senha, registroProfissional, tipoFuncao, especialidade }) {
         if (!nome || !email || !senha || !tipoFuncao) {
-            throw new Error(
-                'Nome, e-mail, senha e tipo de função são obrigatórios.'
-            );
+            throw new Error('Nome, e-mail, senha e tipo de função são obrigatórios.');
         }
 
         const funcao = tipoFuncao.trim().toUpperCase();
@@ -32,112 +19,49 @@ class Profissional {
         const registro = registroProfissional?.trim() || null;
 
         if (funcao !== 'RECEPCIONISTA' && !registro) {
-            throw new Error(
-                'CRM ou COREN é obrigatório para esse profissional.'
-            );
+            throw new Error('CRM ou COREN é obrigatório para esse profissional.');
         }
 
-        const emailExistente = await executar(
-            `SELECT ID_PROFISSIONAL
-            FROM PROFISSIONAL
-            WHERE LOWER(EMAIL) = LOWER(:email)`,
-            { email }
-        );
-
-        if (emailExistente.rows.length > 0) {
+        if (await ProfissionalRepository.emailExiste(email)) {
             throw new Error('E-mail já cadastrado.');
         }
 
-        if (registro) {
-            const registroExistente = await executar(
-                `SELECT ID_PROFISSIONAL
-                FROM PROFISSIONAL
-                WHERE REGISTRO_PROFISSIONAL = :registro`,
-                { registro }
-            );
-
-            if (registroExistente.rows.length > 0) {
-                throw new Error('Registro profissional já cadastrado.');
-            }
+        if (registro && await ProfissionalRepository.registroExiste(registro)) {
+            throw new Error('Registro profissional já cadastrado.');
         }
 
         const senhaHash = await bcrypt.hash(senha, 10);
 
-        const resultado = await executar(
-            `INSERT INTO PROFISSIONAL (
-                NOME,
-                EMAIL,
-                SENHA,
-                REGISTRO_PROFISSIONAL,
-                TIPO_FUNCAO
-            ) VALUES (
-                :nome,
-                :email,
-                :senha,
-                :registro,
-                :funcao
-            )
-            RETURNING ID_PROFISSIONAL INTO :id`,
-            {
-                nome,
-                email,
-                senha: senhaHash,
-                registro,
-                funcao,
-                id: {
-                    dir: oracledb.BIND_OUT,
-                    type: oracledb.NUMBER
-                }
-            },
-            { autoCommit: true }
-        );
+        const id = await ProfissionalRepository.criar({
+            nome,
+            email,
+            senha: senhaHash,
+            registroProfissional: registro,
+            tipoFuncao: funcao,
+            especialidade: especialidade?.trim() || null
+        });
 
         return {
-            id: resultado.outBinds.id[0],
+            id,
             nome,
             email,
             registroProfissional: registro,
-            tipoFuncao: funcao
+            tipoFuncao: funcao,
+            especialidade: especialidade?.trim() || null
         };
     }
 
-    // READ: listar todos ou filtrar por função
+    // READ: listar todos
     static async listarTodos() {
-        const sql = `
-        SELECT
-            ID_PROFISSIONAL AS "id",
-            NOME AS "nome",
-            EMAIL AS "email",
-            REGISTRO_PROFISSIONAL AS "registroProfissional",
-            TIPO_FUNCAO AS "tipoFuncao"
-        FROM PROFISSIONAL
-        ORDER BY NOME
-    `;
-
-        const resultado = await executar(sql, {});
-
-        return resultado.rows;
+        return await ProfissionalRepository.listarTodos();
     }
 
-    // READ: buscar profissional por ID
+    // READ: buscar por ID
     static async buscarPorId(id) {
-        const resultado = await executar(
-            `SELECT
-                ID_PROFISSIONAL AS "id",
-                NOME AS "nome",
-                EMAIL AS "email",
-                REGISTRO_PROFISSIONAL AS "registroProfissional",
-                TIPO_FUNCAO AS "tipoFuncao"
-            FROM PROFISSIONAL
-            WHERE ID_PROFISSIONAL = :id`,
-            { id: Number(id) }
-        );
-
-        return resultado.rows[0] || null;
+        return await ProfissionalRepository.buscarPorId(Number(id));
     }
 
-    // UPDATE: atualizar dados do profissional
-    // A senha só é alterada quando uma nova senha é enviada.
+    // UPDATE
     static async atualizar(id, dados) {
         id = Number(id);
 
@@ -150,13 +74,12 @@ class Profissional {
             email,
             senha,
             registroProfissional,
-            tipoFuncao
+            tipoFuncao,
+            especialidade
         } = dados;
 
         if (!nome || !email || !tipoFuncao) {
-            throw new Error(
-                'Nome, e-mail e tipo de função são obrigatórios.'
-            );
+            throw new Error('Nome, e-mail e tipo de função são obrigatórios.');
         }
 
         const funcao = tipoFuncao.trim().toUpperCase();
@@ -174,68 +97,36 @@ class Profissional {
         const registro = registroProfissional?.trim() || null;
 
         if (funcao !== 'RECEPCIONISTA' && !registro) {
-            throw new Error(
-                'CRM ou COREN é obrigatório para esse profissional.'
-            );
+            throw new Error('CRM ou COREN é obrigatório para esse profissional.');
         }
 
-        const emailExistente = await executar(
-            `SELECT ID_PROFISSIONAL
-            FROM PROFISSIONAL
-            WHERE LOWER(EMAIL) = LOWER(:email)
-            AND ID_PROFISSIONAL <> :id`,
-            { email, id }
-        );
-
-        if (emailExistente.rows.length > 0) {
+        if (await ProfissionalRepository.emailExiste(email, id)) {
             throw new Error('E-mail já cadastrado.');
         }
 
-        if (registro) {
-            const registroExistente = await executar(
-                `SELECT ID_PROFISSIONAL
-                FROM PROFISSIONAL
-                WHERE REGISTRO_PROFISSIONAL = :registro
-                AND ID_PROFISSIONAL <> :id`,
-                { registro, id }
-            );
-
-            if (registroExistente.rows.length > 0) {
-                throw new Error('Registro profissional já cadastrado.');
-            }
+        if (registro && await ProfissionalRepository.registroExiste(registro, id)) {
+            throw new Error('Registro profissional já cadastrado.');
         }
 
-        let sql = `
-            UPDATE PROFISSIONAL
-            SET NOME = :nome,
-                EMAIL = :email,
-                REGISTRO_PROFISSIONAL = :registro,
-                TIPO_FUNCAO = :funcao
-        `;
-
-        const binds = {
-            id,
+        // A senha só será atualizada se uma nova senha for enviada.
+        const dadosAtualizados = {
             nome,
             email,
-            registro,
-            funcao
+            registroProfissional: registro,
+            tipoFuncao: funcao,
+            especialidade: especialidade?.trim() || null
         };
 
         if (senha) {
-            const senhaHash = await bcrypt.hash(senha, 10);
-
-            sql += ', SENHA = :senha';
-            binds.senha = senhaHash;
+            dadosAtualizados.senha = await bcrypt.hash(senha, 10);
         }
 
-        sql += ' WHERE ID_PROFISSIONAL = :id';
-
-        await executar(sql, binds, { autoCommit: true });
+        await ProfissionalRepository.atualizar(id, dadosAtualizados);
 
         return await this.buscarPorId(id);
     }
 
-    // DELETE: excluir profissional por ID
+    // DELETE
     static async excluir(id) {
         id = Number(id);
 
@@ -243,14 +134,7 @@ class Profissional {
             throw new Error('ID do profissional inválido.');
         }
 
-        const resultado = await executar(
-            `DELETE FROM PROFISSIONAL
-            WHERE ID_PROFISSIONAL = :id`,
-            { id },
-            { autoCommit: true }
-        );
-
-        return resultado.rowsAffected > 0;
+        return await ProfissionalRepository.excluir(id);
     }
 }
 
