@@ -1,0 +1,6 @@
+medflow.sqlite3
+medflow.sqlite3-*
+__pycache__/
+
+servidor.log
+servidor-erros.log

@@ -37,10 +37,12 @@ projeto-integrador-II/
 
 ## ▶️ Como executar
 
-1. Clone o repositório.
-2. Abra a pasta no VS Code.
-3. Execute o arquivo `index.html`.
-4. Importe os scripts SQL no Oracle.
+1. Clone o repositório e abra a pasta no VS Code.
+2. Entre na pasta `frontend`.
+3. No Windows, execute `Iniciar MedFlow.bat`; ele inicia o servidor e abre o navegador.
+4. Acesse http://127.0.0.1:8080. O login requer o servidor; abrir apenas o HTML não executa a autenticação.
+
+Requer Python 3 e Node.js. Os três acessos iniciais e as instruções completas estão em [frontend/README.md](frontend/README.md). O banco SQLite é criado localmente e não é versionado. O backend MySQL existente permanece na pasta `backend`.
 
 ## 👥 Integrantes
 

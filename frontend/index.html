@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedFlow · Entrar</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="login-body">
+  <main class="login-wrap">
+    <header class="login-brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 36 36" aria-hidden="true">
+          <path d="M4 18h6l3-8 5 16 3-8h11" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <div>
+        <strong>MedFlow</strong>
+        <small>Cuidando de cada vida</small>
+      </div>
+    </header>
+    <h1 id="auth-titulo">Bem-vindo ao MedFlow</h1>
+    <p id="auth-descricao">Entre com seu e-mail e senha para acessar sua área.</p>
+    <form id="login" class="login-form">
+      <div id="campo-nome" class="hidden"><label for="nome">Nome completo</label><input id="nome" autocomplete="name" minlength="3" maxlength="80"></div>
+      <div id="campo-perfil" class="hidden"><label for="perfil">Função</label><select id="perfil"><option value="">Selecione sua função</option><option value="recepcao">Recepcionista</option><option value="enfermagem">Enfermeira(o)</option><option value="medico">Médico(a)</option></select></div>
+      <div id="campo-email"><label for="email">E-mail</label><input id="email" type="email" required autocomplete="username" maxlength="254"></div>
+      <div id="campo-senha"><label for="senha">Senha</label><input id="senha" type="password" required autocomplete="current-password" maxlength="128"></div>
+      <div id="campo-confirmar" class="hidden"><label for="confirmar">Confirmar senha</label><input id="confirmar" type="password" autocomplete="new-password" maxlength="128"></div>
+      <p id="login-erro" class="erro" role="alert"></p>
+      <p id="login-mensagem" role="status"></p>
+      <button id="auth-enviar" class="primary" type="submit">Entrar</button>
+      <div class="auth-links"><button class="ghost" type="button" data-modo="cadastro">Criar conta</button><button class="ghost" type="button" data-modo="recuperar">Esqueci a senha</button><button class="ghost hidden" type="button" data-modo="login">Voltar para o login</button></div>
+    </form>
+  </main>
+  <script src="js/sessao.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

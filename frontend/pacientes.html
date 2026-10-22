@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedFlow · Pacientes para atendimento</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="shell">
+    <section class="panel">
+      <header class="topbar" id="topbar"></header>
+      <div class="content">
+        <div class="tabs">
+          <button class="tab ativo" type="button" data-aba="fila">Pacientes para atendimento <span class="badge" id="qtd-fila">0</span></button>
+          <button class="tab" type="button" data-aba="medico">Encaminhados <span class="badge" id="qtd-medico">0</span></button>
+        </div>
+
+        <div class="section-head">
+          <h2>Lista de pacientes</h2>
+          <div class="toolbar">
+            <button class="ghost" type="button" id="btn-filtros">Filtros</button>
+            <button class="ghost" type="button" id="btn-atualizar">Atualizar</button>
+            <button class="ghost" type="button" id="btn-reset" title="Recarrega os atendimentos de demonstração">Excluir dados</button>
+          </div>
+        </div>
+
+        <div class="filters-pop" id="filtros">
+          <label for="filtro-prio">Prioridade</label>
+          <select id="filtro-prio">
+            <option value="">Todas</option>
+            <option>Alta</option>
+            <option>Média</option>
+            <option>Baixa</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="patients">
+            <thead>
+              <tr>
+                <th>Prioridade</th>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Nº Atendimento</th>
+                <th>Queixa Principal</th>
+                <th>Tempo de espera</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="lista-pacientes"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/sessao.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/remoto.js"></script>
+  <script src="js/validacao.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/pacientes.js"></script>
+</body>
+</html>
