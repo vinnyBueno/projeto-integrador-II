@@ -1,117 +1,202 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MedFlow · Recepção</title>
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body class="app">
-  <aside class="sidebar" id="sidebar"></aside>
-  <main class="shell">
-    <section class="panel">
-      <header class="topbar" id="topbar"></header>
-      <div class="content">
-        <div class="tabs">
-          <button class="tab ativo" type="button" data-aba="novo">Novo atendimento</button>
-          <button class="tab" type="button" data-aba="lista">Histórico de cadastros</button>
-        </div>
-
-        <div id="aba-novo">
-          <div class="section-head">
-            <h2>Cadastro e abertura de atendimento</h2>
-            <button class="ghost" type="button" id="btn-reset">Excluir dados</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MedFlow · Recepção</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="shell">
+      <section class="panel">
+        <header class="topbar" id="topbar"></header>
+        <div class="content">
+          <div class="tabs">
+            <button class="tab ativo" type="button" data-aba="novo">
+              Novo atendimento
+            </button>
+            <button class="tab" type="button" data-aba="lista">
+              Histórico de cadastros
+            </button>
           </div>
-          <form class="card form-grid" id="form-recepcao">
-            <div class="field">
-              <label for="cpf">CPF</label>
-              <div class="control"><input id="cpf" maxlength="14" placeholder="000.000.000-00"></div>
-              <div class="erro" id="erro-cpf"></div>
+
+          <div id="aba-novo">
+            <div class="section-head">
+              <h2>Cadastro e abertura de atendimento</h2>
+              <button class="ghost" type="button" id="btn-reset">
+                Excluir dados
+              </button>
             </div>
-            <div class="field field-action">
-              <label>&nbsp;</label>
-              <button class="ghost" type="button" id="btn-buscar">Buscar paciente</button>
-            </div>
-            <div class="field">
-              <label for="nome">Nome</label>
-              <div class="control"><input id="nome" maxlength="80" placeholder="Nome completo"></div>
-              <div class="erro" id="erro-nome"></div>
-            </div>
-            <div class="field">
-              <label for="dataNascimento">Data de nascimento</label>
-              <div class="control"><input id="dataNascimento" type="date"></div>
-              <div class="erro" id="erro-dataNascimento"></div>
-            </div>
-            <div class="field">
-              <label for="sexo">Sexo</label>
-              <div class="control">
-                <select id="sexo">
-                  <option value="">Selecione</option>
-                  <option>Feminino</option>
-                  <option>Masculino</option>
-                </select>
+            <form class="card form-grid" id="form-recepcao">
+              <div class="field field-obrigatorio">
+                <label for="cpf">CPF</label>
+                <div class="control">
+                  <input id="cpf" maxlength="14" placeholder="000.000.000-00" />
+                </div>
+                <div class="erro" id="erro-cpf"></div>
               </div>
-              <div class="erro" id="erro-sexo"></div>
-            </div>
-            <div class="field">
-              <label for="telefone">Telefone</label>
-              <div class="control"><input id="telefone" maxlength="16" placeholder="(19) 99999-9999"></div>
-              <div class="erro" id="erro-telefone"></div>
-            </div>
-            <div class="field">
-              <label for="convenio">Convênio</label>
-              <div class="control"><input id="convenio" maxlength="40" placeholder="SUS"></div>
-              <div class="erro" id="erro-convenio"></div>
-            </div>
-            <div class="field">
-              <label for="prioridadeRecepcao">Prioridade da recepção</label>
-              <div class="control">
-                <select id="prioridadeRecepcao">
-                  <option value="">Selecione</option>
-                  <option>Alta</option>
-                  <option>Média</option>
-                  <option>Baixa</option>
-                </select>
+              <div class="field field-action">
+                <label>&nbsp;</label>
+                <button class="ghost" type="button" id="btn-buscar">
+                  Buscar paciente
+                </button>
               </div>
-              <div class="erro" id="erro-prioridadeRecepcao"></div>
-            </div>
+              <div class="field field-obrigatorio">
+                <label for="nome">Nome completo</label>
+                <div class="control">
+                  <input id="nome" maxlength="80" placeholder="Nome completo" />
+                </div>
+                <div class="erro" id="erro-nome"></div>
+              </div>
+              <div class="field field-obrigatorio">
+                <label for="dataNascimento">Data de nascimento</label>
+                <div class="control">
+                  <input id="dataNascimento" type="date" />
+                </div>
+                <div class="erro" id="erro-dataNascimento"></div>
+              </div>
+              <div class="field field-obrigatorio">
+                <label for="sexo">Sexo</label>
+                <div class="control">
+                  <select id="sexo">
+                    <option value="">Selecione</option>
+                    <option>Feminino</option>
+                    <option>Masculino</option>
+                  </select>
+                </div>
+                <div class="erro" id="erro-sexo"></div>
+              </div>
+              <div class="field field-obrigatorio">
+                <label for="telefone">Telefone</label>
+                <div class="control">
+                  <input
+                    id="telefone"
+                    maxlength="16"
+                    placeholder="(19) 99999-9999"
+                  />
+                </div>
+                <div class="erro" id="erro-telefone"></div>
+              </div>
+              <div class="field field-obrigatorio">
+                <label for="convenio">Convênio</label>
+                <div class="control">
+                  <input id="convenio" maxlength="40" placeholder="SUS" />
+                </div>
+                <div class="erro" id="erro-convenio"></div>
+              </div>
+              <div class="field field-obrigatorio">
+                <label for="rg">RG</label>
+                <div class="control">
+                  <input id="rg" maxlength="20" required />
+                </div>
+                <div class="erro" id="erro-rg"></div>
+              </div>
+              <div class="field field-obrigatorio field-nova-linha">
+                <label for="nomeMae">Nome da mãe</label>
+                <div class="control">
+                  <input id="nomeMae" maxlength="80" required minlength="3" />
+                </div>
+                <div class="erro" id="erro-nomeMae"></div>
+              </div>
+              <div class="field field-obrigatorio">
+                <label for="telefoneEmergencia">Telefone de emergência</label>
+                <div class="control">
+                  <input
+                    id="telefoneEmergencia"
+                    type="tel"
+                    required
+                    maxlength="16"
+                    placeholder="(19) 99999-9999"
+                  />
+                </div>
+                <div class="erro" id="erro-telefoneEmergencia"></div>
+              </div>
 
-            <div class="form-actions span-2">
-              <button class="ghost" type="reset">Limpar</button>
-              <button class="primary" type="submit">Gerar atendimento</button>
-            </div>
-          </form>
-        </div>
+              <div class="field">
+                <label for="nomePai">Nome do pai (opcional)</label>
+                <div class="control"><input id="nomePai" maxlength="80" /></div>
+                <div class="erro" id="erro-nomePai"></div>
+              </div>
+              <div class="field">
+                <label for="cep">CEP (opcional)</label>
+                <div class="control"><input id="cep" maxlength="9" /></div>
+                <div class="erro" id="erro-cep"></div>
+              </div>
+              <div class="field">
+                <label for="logradouro">Logradouro (opcional)</label>
+                <div class="control">
+                  <input id="logradouro" maxlength="120" />
+                </div>
+                <div class="erro" id="erro-logradouro"></div>
+              </div>
+              <div class="field">
+                <label for="numeroEndereco">Número (opcional)</label>
+                <div class="control">
+                  <input id="numeroEndereco" maxlength="20" />
+                </div>
+                <div class="erro" id="erro-numeroEndereco"></div>
+              </div>
+              <div class="field">
+                <label for="complemento">Complemento (opcional)</label>
+                <div class="control">
+                  <input id="complemento" maxlength="80" />
+                </div>
+                <div class="erro" id="erro-complemento"></div>
+              </div>
+              <div class="field">
+                <label for="bairro">Bairro (opcional)</label>
+                <div class="control"><input id="bairro" maxlength="80" /></div>
+                <div class="erro" id="erro-bairro"></div>
+              </div>
+              <div class="field">
+                <label for="cidade">Cidade (opcional)</label>
+                <div class="control"><input id="cidade" maxlength="80" /></div>
+                <div class="erro" id="erro-cidade"></div>
+              </div>
+              <div class="field">
+                <label for="uf">UF (opcional)</label>
+                <div class="control"><input id="uf" maxlength="2" /></div>
+                <div class="erro" id="erro-uf"></div>
+              </div>
 
-        <div id="aba-lista" class="hidden">
-          <div class="section-head">
-            <h2>Atendimentos da recepção</h2>
-            <button class="ghost" type="button" id="btn-atualizar">Atualizar</button>
+              <div class="form-actions span-2">
+                <button class="ghost" type="reset">Limpar</button>
+                <button class="primary" type="submit">Gerar atendimento</button>
+              </div>
+            </form>
           </div>
-          <div class="table-wrap">
-            <table class="patients">
-              <thead>
-                <tr>
-                  <th>Nº</th>
-                  <th>Paciente</th>
-                  <th>CPF</th>
-                  <th>Status</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody id="lista-recepcao"></tbody>
-            </table>
+
+          <div id="aba-lista" class="hidden">
+            <div class="section-head">
+              <h2>Atendimentos da recepção</h2>
+              <button class="ghost" type="button" id="btn-atualizar">
+                Atualizar
+              </button>
+            </div>
+            <div class="table-wrap">
+              <table class="patients">
+                <thead>
+                  <tr>
+                    <th>Nº</th>
+                    <th>Paciente</th>
+                    <th>CPF</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="lista-recepcao"></tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
-  </main>
+      </section>
+    </main>
 
-  <script src="js/sessao.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/remoto.js"></script>
-  <script src="js/validacao.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/recepcao.js"></script>
-</body>
+    <script src="js/sessao.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/validacao.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/recepcao.js"></script>
+  </body>
 </html>

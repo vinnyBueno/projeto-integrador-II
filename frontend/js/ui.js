@@ -4,14 +4,22 @@
       .split(/\s+/)
       .filter(Boolean)
       .slice(0, 2)
-      .map(function (p) { return p[0]; })
+      .map(function (p) {
+        return p[0];
+      })
       .join("")
       .toUpperCase();
   }
 
   function esc(texto) {
     return String(texto == null ? "" : texto).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      return {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+      }[c];
     });
   }
 
@@ -40,7 +48,16 @@
   }
 
   function classePrioridade(prioridade) {
-    const mapa = { Alta: "alta", "Muito alta": "alta", "Média": "media", Media: "media", Urgente: "media", Baixa: "baixa", "Pouco urgente": "baixa", "Não urgente": "baixa" };
+    const mapa = {
+      Alta: "alta",
+      "Muito alta": "alta",
+      Média: "media",
+      Media: "media",
+      Urgente: "media",
+      Baixa: "baixa",
+      "Pouco urgente": "baixa",
+      "Não urgente": "baixa",
+    };
     return mapa[prioridade] || "media";
   }
 
@@ -67,10 +84,14 @@
     el.className = "toast toast-" + (tipo || "info");
     el.textContent = mensagem;
     host.appendChild(el);
-    setTimeout(function () { el.classList.add("visible"); }, 20);
+    setTimeout(function () {
+      el.classList.add("visible");
+    }, 20);
     setTimeout(function () {
       el.classList.remove("visible");
-      setTimeout(function () { el.remove(); }, 280);
+      setTimeout(function () {
+        el.remove();
+      }, 280);
     }, 4200);
   }
 
@@ -86,32 +107,57 @@
   }
 
   function limparErros(ids) {
-    ids.forEach(function (id) { marcarCampo(id, ""); });
+    ids.forEach(function (id) {
+      marcarCampo(id, "");
+    });
   }
 
   const ICONES = {
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z"/></svg>',
-    users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M21 21v-2a3.8 3.8 0 0 0-3-3.7"/><path d="M16 4.1a3.5 3.5 0 0 1 0 6.8"/></svg>',
-    clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6V7H9V4.5Z"/><path d="M9 12h6M9 16h4"/></svg>',
-    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg>',
+    users:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7.5" r="3.5"/><path d="M21 21v-2a3.8 3.8 0 0 0-3-3.7"/><path d="M16 4.1a3.5 3.5 0 0 1 0 6.8"/></svg>',
+    clipboard:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6V7H9V4.5Z"/><path d="M9 12h6M9 16h4"/></svg>',
+    clock:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg>',
   };
 
   function linksDoPerfil(perfil) {
     if (perfil === "recepcao") {
       return [
-        { id: "inicio", href: "recepcao.html", rotulo: "Início", icone: "home" },
-        { id: "historico", href: "historico.html", rotulo: "Histórico", icone: "clock" },
+        {
+          id: "inicio",
+          href: "recepcao.html",
+          rotulo: "Início",
+          icone: "home",
+        },
+        {
+          id: "historico",
+          href: "historico.html",
+          rotulo: "Histórico",
+          icone: "clock",
+        },
       ];
     }
     if (perfil === "medico") {
       return [
         { id: "inicio", href: "fila.html", rotulo: "Início", icone: "home" },
-        { id: "historico", href: "historico.html", rotulo: "Histórico", icone: "clock" },
+        {
+          id: "historico",
+          href: "historico.html",
+          rotulo: "Histórico",
+          icone: "clock",
+        },
       ];
     }
     return [
       { id: "inicio", href: "pacientes.html", rotulo: "Início", icone: "home" },
-      { id: "historico", href: "historico.html", rotulo: "Histórico", icone: "clock" },
+      {
+        id: "historico",
+        href: "historico.html",
+        rotulo: "Histórico",
+        icone: "clock",
+      },
     ];
   }
 
@@ -122,34 +168,56 @@
     const links = linksDoPerfil(sessao && sessao.id);
 
     if (sidebar) {
-      const nav = links.map(function (l) {
-        const ativo = paginaAtiva === l.id ? " ativo" : "";
-        return '<a class="' + ativo.trim() + '" href="' + l.href + '">' + ICONES[l.icone] + "<span>" + l.rotulo + "</span></a>";
-      }).join("");
+      const nav = links
+        .map(function (l) {
+          const ativo = paginaAtiva === l.id ? " ativo" : "";
+          return (
+            '<a class="' +
+            ativo.trim() +
+            '" href="' +
+            l.href +
+            '">' +
+            ICONES[l.icone] +
+            "<span>" +
+            l.rotulo +
+            "</span></a>"
+          );
+        })
+        .join("");
       sidebar.innerHTML =
-        '<a class="brand" href="' + (sessao ? sessao.inicio : "index.html") + '">' +
-          '<span class="brand-mark">' +
-            '<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M4 18h6l3-8 5 16 3-8h11" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-          "</span>" +
-          "<span><strong>MedFlow</strong><small>Cuidando de cada vida</small></span>" +
+        '<a class="brand" href="' +
+        (sessao ? sessao.inicio : "index.html") +
+        '">' +
+        '<span class="brand-mark">' +
+        '<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M4 18h6l3-8 5 16 3-8h11" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+        "</span>" +
+        "<span><strong>MedFlow</strong><small>Cuidando de cada vida</small></span>" +
         "</a>" +
-        '<nav class="side-nav">' + nav + "</nav>" +
+        '<nav class="side-nav">' +
+        nav +
+        "</nav>" +
         '<div class="side-foot">' +
-          '<span class="heart">♡</span>' +
-          "<p>Mais do que<br>um sistema,<br>uma rede de cuidado.</p>" +
-          '<button class="ghost sair" type="button" id="btn-sair">Sair</button>' +
+        '<span class="heart">♡</span>' +
+        "<p>Mais do que<br>um sistema,<br>uma rede de cuidado.</p>" +
+        '<button class="ghost sair" type="button" id="btn-sair">Sair</button>' +
         "</div>";
     }
 
     if (topbar && sessao) {
       topbar.innerHTML =
         '<label class="search">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>' +
-          '<input id="busca-global" type="search" placeholder="Pesquisar paciente por nome, CPF, nº do atendimento..." autocomplete="off">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>' +
+        '<input id="busca-global" type="search" placeholder="Pesquisar paciente por nome, CPF, nº do atendimento..." autocomplete="off">' +
         "</label>" +
         '<div class="user-chip">' +
-          '<span class="avatar">' + esc(sessao.iniciais) + "</span>" +
-          "<span><strong>" + esc(sessao.nome) + "</strong><small>" + esc(sessao.cargo) + "</small></span>" +
+        '<span class="avatar">' +
+        esc(sessao.iniciais) +
+        "</span>" +
+        "<span><strong>" +
+        esc(sessao.nome) +
+        "</strong><small>" +
+        esc(sessao.cargo) +
+        "</small></span>" +
         "</div>";
     }
 

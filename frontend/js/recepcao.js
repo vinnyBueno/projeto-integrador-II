@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const sessao = MedFlowSessao.exigir(["recepcao"]);
   if (!sessao) return;
 
@@ -46,6 +46,13 @@
     if (r.ok) this.value = r.valor;
   });
 
+  document
+    .getElementById("telefoneEmergencia")
+    .addEventListener("input", function () {
+      const resultado = validar.telefone(this.value);
+      if (resultado.ok) this.value = resultado.valor;
+    });
+
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     const paciente = validar.paciente({
@@ -54,15 +61,46 @@
       dataNascimento: document.getElementById("dataNascimento").value,
       sexo: document.getElementById("sexo").value,
       telefone: document.getElementById("telefone").value,
+      telefoneEmergencia: document.getElementById("telefoneEmergencia").value,
       convenio: document.getElementById("convenio").value,
+      rg: document.getElementById("rg").value,
+      nomePai: document.getElementById("nomePai").value,
+      nomeMae: document.getElementById("nomeMae").value,
+      cep: document.getElementById("cep").value,
+      logradouro: document.getElementById("logradouro").value,
+      numeroEndereco: document.getElementById("numeroEndereco").value,
+      complemento: document.getElementById("complemento").value,
+      bairro: document.getElementById("bairro").value,
+      cidade: document.getElementById("cidade").value,
+      uf: document.getElementById("uf").value,
     });
     const atendimento = validar.atendimentoRecepcao({
       queixaPrincipal: "",
-      prioridadeRecepcao: document.getElementById("prioridadeRecepcao").value,
     });
     const erros = Object.assign({}, paciente.erros, atendimento.erros);
-    ui.limparErros(["nome", "cpf", "dataNascimento", "sexo", "telefone", "convenio", "queixaPrincipal", "prioridadeRecepcao"]);
-    Object.keys(erros).forEach(function (campo) { ui.marcarCampo(campo, erros[campo]); });
+    ui.limparErros([
+      "nome",
+      "cpf",
+      "dataNascimento",
+      "sexo",
+      "telefone",
+      "telefoneEmergencia",
+      "convenio",
+      "rg",
+      "nomePai",
+      "nomeMae",
+      "cep",
+      "logradouro",
+      "numeroEndereco",
+      "complemento",
+      "bairro",
+      "cidade",
+      "uf",
+      "queixaPrincipal",
+    ]);
+    Object.keys(erros).forEach(function (campo) {
+      ui.marcarCampo(campo, erros[campo]);
+    });
     if (!paciente.ok || !atendimento.ok) {
       ui.toast("Corrija os campos destacados antes de continuar.", "erro");
       return;
@@ -73,8 +111,16 @@
         ui.toast("Atendimento atualizado.", "ok");
         editandoId = null;
       } else {
-        const criado = api.salvarPacienteEAbrirAtendimento(paciente.dados, atendimento.dados);
-        ui.toast("Atendimento nº " + criado.numero + " gerado. Paciente encaminhado à triagem.", "ok");
+        const criado = api.salvarPacienteEAbrirAtendimento(
+          paciente.dados,
+          atendimento.dados,
+        );
+        ui.toast(
+          "Atendimento nº " +
+            criado.numero +
+            " gerado. Paciente encaminhado à triagem.",
+          "ok",
+        );
       }
       form.reset();
     } catch (erro) {
@@ -83,16 +129,23 @@
   });
 
   document.getElementById("btn-reset").addEventListener("click", function () {
-    if (!window.confirm("Excluir todos os pacientes e atendimentos? Esta ação não pode ser desfeita.")) return;
+    if (
+      !window.confirm(
+        "Excluir todos os pacientes e atendimentos? Esta ação não pode ser desfeita.",
+      )
+    )
+      return;
     api.excluirDados();
     form.reset();
     ui.toast("Dados de demonstração restaurados.", "ok");
   });
 
-  document.getElementById("btn-atualizar").addEventListener("click", function () {
-    renderLista();
-    ui.toast("Lista atualizada.", "ok");
-  });
+  document
+    .getElementById("btn-atualizar")
+    .addEventListener("click", function () {
+      renderLista();
+      ui.toast("Lista atualizada.", "ok");
+    });
 
   if (busca) {
     busca.addEventListener("input", function () {
@@ -108,7 +161,6 @@
       const item = api.obterPorNumero(alterar.getAttribute("data-alterar"));
       if (!item) return;
       preencher(item.paciente);
-      document.getElementById("prioridadeRecepcao").value = item.prioridadeRecepcao;
       editandoId = item.id;
       document.querySelector('[data-aba="novo"]').click();
       ui.toast("Confira os dados do paciente e salve.", "ok");
@@ -130,11 +182,17 @@
     if (!doc.ok) return;
     const paciente = api.buscarPacientePorCpf(doc.valor);
     if (!paciente) {
-      ui.toast("Paciente não encontrado. Preencha o cadastro para incluir.", "info");
+      ui.toast(
+        "Paciente não encontrado. Preencha o cadastro para incluir.",
+        "info",
+      );
       return;
     }
     preencher(paciente);
-    ui.toast("Paciente localizado. Confira os dados e abra o atendimento.", "ok");
+    ui.toast(
+      "Paciente localizado. Confira os dados e abra o atendimento.",
+      "ok",
+    );
   }
 
   function preencher(paciente) {
@@ -143,7 +201,20 @@
     document.getElementById("dataNascimento").value = paciente.dataNascimento;
     document.getElementById("sexo").value = paciente.sexo;
     document.getElementById("telefone").value = paciente.telefone;
+    document.getElementById("telefoneEmergencia").value =
+      paciente.telefoneEmergencia || "";
     document.getElementById("convenio").value = paciente.convenio;
+    document.getElementById("rg").value = paciente.rg || "";
+    document.getElementById("nomePai").value = paciente.nomePai || "";
+    document.getElementById("nomeMae").value = paciente.nomeMae || "";
+    document.getElementById("cep").value = paciente.cep || "";
+    document.getElementById("logradouro").value = paciente.logradouro || "";
+    document.getElementById("numeroEndereco").value =
+      paciente.numeroEndereco || "";
+    document.getElementById("complemento").value = paciente.complemento || "";
+    document.getElementById("bairro").value = paciente.bairro || "";
+    document.getElementById("cidade").value = paciente.cidade || "";
+    document.getElementById("uf").value = paciente.uf || "";
   }
 
   function acoes(item) {
@@ -151,8 +222,14 @@
       return "<small>Sem ações</small>";
     }
     if (item.status === "AGUARDANDO_TRIAGEM") {
-      return '<button class="ghost" type="button" data-alterar="' + item.numero + '">Alterar</button>' +
-        '<button class="danger" type="button" data-cancelar="' + item.id + '">Cancelar</button>';
+      return (
+        '<button class="ghost" type="button" data-alterar="' +
+        item.numero +
+        '">Alterar</button>' +
+        '<button class="danger" type="button" data-cancelar="' +
+        item.id +
+        '">Cancelar</button>'
+      );
     }
     return "<small>Em andamento</small>";
   }
@@ -160,22 +237,44 @@
   function renderLista() {
     const fonte = api.listarAtendimentosRecepcao().filter(function (item) {
       if (!termo) return true;
-      const blob = (item.paciente.nome + " " + item.paciente.cpf + " " + item.numero + " " + item.queixaPrincipal).toLowerCase();
+      const blob = (
+        item.paciente.nome +
+        " " +
+        item.paciente.cpf +
+        " " +
+        item.numero +
+        " " +
+        item.queixaPrincipal
+      ).toLowerCase();
       return blob.indexOf(termo) !== -1;
     });
     if (!fonte.length) {
-      lista.innerHTML = '<tr><td colspan="6"><div class="empty">Nenhum atendimento encontrado.</div></td></tr>';
+      lista.innerHTML =
+        '<tr><td colspan="6"><div class="empty">Nenhum atendimento encontrado.</div></td></tr>';
       return;
     }
-    lista.innerHTML = fonte.map(function (item) {
-      return "<tr>" +
-        "<td>" + ui.esc(item.numero) + "</td>" +
-        "<td>" + ui.esc(item.paciente.nome) + "</td>" +
-        "<td>" + ui.esc(item.paciente.cpf) + "</td>" +
-        
-        "<td>" + ui.esc(ui.rotuloStatus(item.status)) + "</td>" +
-        '<td><div class="actions">' + acoes(item) + "</div></td>" +
-      "</tr>";
-    }).join("");
+    lista.innerHTML = fonte
+      .map(function (item) {
+        return (
+          "<tr>" +
+          "<td>" +
+          ui.esc(item.numero) +
+          "</td>" +
+          "<td>" +
+          ui.esc(item.paciente.nome) +
+          "</td>" +
+          "<td>" +
+          ui.esc(item.paciente.cpf) +
+          "</td>" +
+          "<td>" +
+          ui.esc(ui.rotuloStatus(item.status)) +
+          "</td>" +
+          '<td><div class="actions">' +
+          acoes(item) +
+          "</div></td>" +
+          "</tr>"
+        );
+      })
+      .join("");
   }
 })();

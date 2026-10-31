@@ -1,23 +1,67 @@
-(function(global) {
-  function request(path, dados) {
-    if (global.location.protocol === "file:") throw new Error("Para entrar, execute Iniciar MedFlow.bat e acesse http://localhost:8080. O login precisa do servidor do sistema.");
-    const xhr = new XMLHttpRequest();
-    xhr.open(dados === undefined ? "GET" : "POST", path, false);
-    xhr.setRequestHeader("Content-Type", "application/json");
-    try { xhr.send(dados === undefined ? null : JSON.stringify(dados)); }
-    catch (erro) { throw new Error("Não foi possível conectar ao MedFlow. Execute Iniciar MedFlow.bat e acesse http://localhost:8080."); }
-    if (!(xhr.getResponseHeader("Content-Type") || "").includes("application/json")) throw new Error("Abra o sistema em http://localhost:8080 após executar Iniciar MedFlow.bat. O Live Server não executa o login.");
-    const result = JSON.parse(xhr.responseText || "{}");
-    if (xhr.status >= 400) throw new Error(result.erro || "Não foi possível acessar o servidor.");
-    return result;
+﻿(function (global) {
+  // Acesso demonstrativo do frontend; substituir pela API do grupo na integração.
+  const chave = "medflow.sessao.demo";
+  const perfis = [
+    {
+      email: "recepcionista@email.com",
+      nome: "Recepcionista",
+      id: "recepcao",
+      cargo: "Recepcionista",
+      inicio: "recepcao.html",
+      iniciais: "RE",
+    },
+    {
+      email: "enfermeiro@email.com",
+      nome: "Enfermeira(o)",
+      id: "enfermagem",
+      cargo: "Enfermagem",
+      inicio: "pacientes.html",
+      iniciais: "EN",
+    },
+    {
+      email: "medico@email.com",
+      nome: "Médico(a)",
+      id: "medico",
+      cargo: "Médico",
+      inicio: "fila.html",
+      iniciais: "ME",
+    },
+  ];
+  function obter() {
+    const email = sessionStorage.getItem(chave);
+    return (
+      perfis.find(function (perfil) {
+        return perfil.email === email;
+      }) || null
+    );
   }
-  function obter() { try { return request("/api/sessao"); } catch(e) { return null; } }
-  function exigir(perfis) {
-    const user = obter();
-    if (!user) { location.replace("index.html"); return null; }
-    if (perfis && !perfis.includes(user.id)) { location.replace(user.inicio); return null; }
-    return user;
+  function entrar(email, senha) {
+    const usuario = perfis.find(function (perfil) {
+      return perfil.email === email.trim().toLowerCase();
+    });
+    if (!usuario || senha !== "12345")
+      throw new Error("Use um dos e-mails de demonstração e a senha 12345.");
+    sessionStorage.setItem(chave, usuario.email);
+    return usuario;
   }
-  global.MedFlowSessao = {obter, exigir, entrar:(email,senha)=>request("/api/login",{email,senha}), sair:()=>request("/api/logout",{})};
-  global.MedFlowRequest = request;
+  function exigir(perfisPermitidos) {
+    const usuario = obter();
+    if (!usuario) {
+      global.location.replace("index.html");
+      return null;
+    }
+    if (perfisPermitidos && !perfisPermitidos.includes(usuario.id)) {
+      global.location.replace(usuario.inicio);
+      return null;
+    }
+    return usuario;
+  }
+  global.MedFlowSessao = {
+    obter: obter,
+    exigir: exigir,
+    entrar: entrar,
+    sair: function () {
+      sessionStorage.removeItem(chave);
+    },
+  };
 })(window);

@@ -1,59 +1,68 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MedFlow · Fila de Atendimento Médico</title>
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body class="app">
-  <aside class="sidebar" id="sidebar"></aside>
-  <main class="shell">
-    <section class="panel">
-      <header class="topbar" id="topbar"></header>
-      <div class="content">
-        <div class="tabs">
-          <button class="tab ativo" type="button">Fila de Atendimento Médico <span class="badge" id="qtd-fila">0</span></button>
-          <a class="tab" href="historico.html">Atendimento</a>
-        </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MedFlow · Fila de Atendimento Médico</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="app">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="shell">
+      <section class="panel">
+        <header class="topbar" id="topbar"></header>
+        <div class="content">
+          <div class="tabs">
+            <button class="tab ativo" type="button">
+              Fila de Atendimento Médico
+              <span class="badge" id="qtd-fila">0</span>
+            </button>
+            <a class="tab" href="historico.html">Histórico</a>
+          </div>
 
-        <div class="manchester-cards" id="cards-manchester"></div>
+          <div class="manchester-cards" id="cards-manchester"></div>
 
-        <div class="section-head">
-          <h2>Pacientes em espera</h2>
-          <div class="toolbar">
-            <button class="ghost" type="button" id="btn-atualizar">Atualizar</button>
-            <button class="ghost" type="button" id="btn-reset">Excluir dados</button>
+          <div class="section-head">
+            <h2>Pacientes em espera</h2>
+            <div class="toolbar">
+              <button class="ghost" type="button" id="btn-atualizar">
+                Atualizar
+              </button>
+              <button class="ghost" type="button" id="btn-reset">
+                Excluir dados
+              </button>
+            </div>
+          </div>
+          <p class="help">
+            A ordem da fila indica a prioridade de atendimento, considerando a
+            classificação e o tempo de espera. A cor exibida é a registrada pela
+            enfermagem.
+          </p>
+
+          <div class="table-wrap">
+            <table class="patients">
+              <thead>
+                <tr>
+                  <th>Nº Atendimento</th>
+                  <th>Nome do Paciente</th>
+                  <th>Data de Nascimento</th>
+                  <th>Classificação da Triagem</th>
+                  <th>Queixas Principais</th>
+                  <th>Tempo de Espera</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="lista-fila"></tbody>
+            </table>
           </div>
         </div>
-        <p class="help">Ordenados por classificação de risco (Manchester) e, em seguida, por ordem de chegada.</p>
+      </section>
+    </main>
 
-        <div class="table-wrap">
-          <table class="patients">
-            <thead>
-              <tr>
-                <th>Prioridade</th>
-                <th>Nº Atendimento</th>
-                <th>Nome do Paciente</th>
-                <th>Data de Nascimento</th>
-                <th>Classificação de Risco</th>
-                <th>Queixas Principais</th>
-                <th>Tempo de Espera</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-            <tbody id="lista-fila"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <script src="js/sessao.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/remoto.js"></script>
-  <script src="js/validacao.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/fila.js"></script>
-</body>
+    <script src="js/sessao.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/validacao.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/fila.js"></script>
+  </body>
 </html>
