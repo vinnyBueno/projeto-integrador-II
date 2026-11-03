@@ -1,12 +1,15 @@
-
 const express = require('express');
 const cors = require('cors');
 
 const logger = require('./src/middlewares/logger');
 
+const { conectarBanco } = require('./src/config/database');
+
 const profissionalRoutes = require('./src/routes/profissionalRoutes');
 const pacienteRoutes = require('./src/routes/pacienteRoutes');
 const atendimentoRoutes = require('./src/routes/atendimentoRoutes');
+const funcaoRoutes = require('./src/routes/funcaoRoutes');
+const servicoRoutes = require('./src/routes/servicoRoutes');
 
 const app = express();
 
@@ -20,13 +23,46 @@ app.get('/', (req, res) => {
     });
 });
 
-// rotas para os profissionais
+// Define o endereço base das rotas de profissionais.
 app.use('/api/profissionais', profissionalRoutes);
 
-// rotas para os pacientes
+// Define o endereço base das rotas de pacientes.
 app.use('/api/pacientes', pacienteRoutes);
 
-// rotas para os atendimentos
+// Define o endereço base das rotas de atendimentos.
 app.use('/api/atendimentos', atendimentoRoutes);
 
+// Define o endereço base das rotas de funções.
+app.use('/api/funcoes', funcaoRoutes);
+
+// Define o endereço base das rotas de serviços.
+app.use('/api/servicos', servicoRoutes);
+
+// Função assíncrona responsável por iniciar o sistema.
+async function iniciarServidor() {
+    try {
+        // Primeiro, estabelece a conexão com o banco de dados Oracle.
+        await conectarBanco();
+
+        // Somente após as etapas anteriores inicia o servidor.
+        app.listen(3000, () => {
+            console.log('Servidor rodando na porta 3000!');
+        });
+
+    } catch (erro) {
+
+        // Exibe o erro caso a conexão ou o bootstrap falhem.
+        console.error('Erro ao iniciar o servidor:', erro);
+
+        // Encerra a aplicação com código de erro.
+        process.exit(1);
+    }
+}
+
+// Chama a função para iniciar o servidor.
+iniciarServidor();
+
+
+// Exporta a instância do Express para que outros arquivos
+// possam utilizá-la
 module.exports = app;

@@ -1,3 +1,5 @@
+const { executarTransacao } = require('../config/database');
+const ProntuarioRepository = require('../repositories/ProntuarioRepository');
 const AtendimentoRepository = require('../repositories/AtendimentoRepository');
 
 class Atendimento {
@@ -85,9 +87,9 @@ class Atendimento {
             minutos >= 0 && minutos <= 59;
     }
 
-    
     // CREATE: cadastrar atendimento
     static async cadastrar(dados) {
+
         // O atendimento ainda não começou
         const dadosAtendimento = {
             ...dados,
@@ -98,13 +100,35 @@ class Atendimento {
         // Valida os dados do atendimento
         const dadosValidados = await this.validarDados(dadosAtendimento);
 
-        // Salva no banco de dados
-        const id = await AtendimentoRepository.criar(dadosValidados);
+        // Executa a criação do prontuário e do atendimento
+        // dentro de uma única transação
+        const id = await executarTransacao(async (conexao) => {
+
+            // Busca o prontuário ou cria um novo
+            const idProntuario = await ProntuarioRepository.obterOuCriar(
+                dadosValidados.idPaciente,
+                conexao
+            );
+
+            // Cadastra o atendimento vinculado ao prontuário
+            return await AtendimentoRepository.criar(
+                dadosValidados,
+                idProntuario,
+                conexao
+            );
+        });
 
         return {
             id,
-            ...dadosValidados
+            ...dadosValidados,
+            idProntuario: await this.buscarIdProntuario(id)
         };
+    }
+
+    // Busca o ID do prontuário associado ao atendimento
+    static async buscarIdProntuario(id) {
+        const atendimento = await this.buscarPorId(id);
+        return atendimento.idProntuario;
     }
 
     // READ: listar todos
@@ -142,7 +166,6 @@ class Atendimento {
             status: dados.status ?? atendimentoExistente.status
         };
 
-        
         // Obtém o horário atual no formato HH:MM
         const agora = new Date();
 
@@ -170,10 +193,24 @@ class Atendimento {
         // Valida os dados completos
         const dadosValidados = await this.validarDados(dadosAtualizados);
 
-        // Salva as alterações
-        await AtendimentoRepository.atualizar(id, dadosValidados);
+        // Atualiza o atendimento e seu prontuário na mesma transação
+        await executarTransacao(async (conexao) => {
 
-        // Retorna o atendimento atualizado
+            // Obtém o prontuário do paciente atual
+            const idProntuario = await ProntuarioRepository.obterOuCriar(
+                dadosValidados.idPaciente,
+                conexao
+            );
+
+            // Atualiza os dados do atendimento
+            await AtendimentoRepository.atualizar(
+                id,
+                dadosValidados,
+                idProntuario,
+                conexao
+            );
+        });
+
         return await this.buscarPorId(id);
     }
 

@@ -1,12 +1,14 @@
+
 const { executar } = require('../config/database');
-const oracledb = require('oracledb');
 
 class AtendimentoRepository {
 
     // Verifica se o paciente existe
     static async pacienteExiste(idPaciente) {
         const resultado = await executar(
-            `SELECT ID_PACIENTE FROM PACIENTE WHERE ID_PACIENTE = :idPaciente`,
+            `SELECT ID_PACIENTE
+            FROM PACIENTE
+            WHERE ID_PACIENTE = :idPaciente`,
             { idPaciente }
         );
 
@@ -16,7 +18,9 @@ class AtendimentoRepository {
     // Verifica se o profissional existe
     static async profissionalExiste(idProfissional) {
         const resultado = await executar(
-            `SELECT ID_PROFISSIONAL FROM PROFISSIONAL WHERE ID_PROFISSIONAL = :idProfissional`,
+            `SELECT ID_PROFISSIONAL
+            FROM PROFISSIONAL
+            WHERE ID_PROFISSIONAL = :idProfissional`,
             { idProfissional }
         );
 
@@ -24,11 +28,12 @@ class AtendimentoRepository {
     }
 
     // CREATE
-    static async criar(dados) {
-        const resultado = await executar(
+    static async criar(dados, idProntuario, conexao) {
+        const resultado = await conexao.execute(
             `INSERT INTO ATENDIMENTO (
                 ID_PACIENTE,
                 ID_PROFISSIONAL,
+                ID_PRONTUARIO,
                 DATA_ATENDIMENTO,
                 HORA_INICIO,
                 HORA_FIM,
@@ -36,6 +41,7 @@ class AtendimentoRepository {
             ) VALUES (
                 :idPaciente,
                 :idProfissional,
+                :idProntuario,
                 TO_DATE(:dataAtendimento, 'YYYY-MM-DD'),
                 :horaInicio,
                 :horaFim,
@@ -45,16 +51,16 @@ class AtendimentoRepository {
             {
                 idPaciente: dados.idPaciente,
                 idProfissional: dados.idProfissional,
+                idProntuario,
                 dataAtendimento: dados.dataAtendimento,
-                horaInicio: dados.horaInicio || null,
-                horaFim: dados.horaFim || null,
-                status: dados.status || 'Agendado',
+                horaInicio: dados.horaInicio,
+                horaFim: dados.horaFim,
+                status: dados.status,
                 id: {
-                    dir: oracledb.BIND_OUT,
-                    type: oracledb.NUMBER
+                    dir: require('oracledb').BIND_OUT,
+                    type: require('oracledb').NUMBER
                 }
-            },
-            { autoCommit: true }
+            }
         );
 
         return resultado.outBinds.id[0];
@@ -67,6 +73,7 @@ class AtendimentoRepository {
                 ID_ATENDIMENTO AS "id",
                 ID_PACIENTE AS "idPaciente",
                 ID_PROFISSIONAL AS "idProfissional",
+                ID_PRONTUARIO AS "idProntuario",
                 TO_CHAR(DATA_ATENDIMENTO, 'YYYY-MM-DD') AS "dataAtendimento",
                 HORA_INICIO AS "horaInicio",
                 HORA_FIM AS "horaFim",
@@ -85,6 +92,7 @@ class AtendimentoRepository {
                 ID_ATENDIMENTO AS "id",
                 ID_PACIENTE AS "idPaciente",
                 ID_PROFISSIONAL AS "idProfissional",
+                ID_PRONTUARIO AS "idProntuario",
                 TO_CHAR(DATA_ATENDIMENTO, 'YYYY-MM-DD') AS "dataAtendimento",
                 HORA_INICIO AS "horaInicio",
                 HORA_FIM AS "horaFim",
@@ -98,11 +106,12 @@ class AtendimentoRepository {
     }
 
     // UPDATE
-    static async atualizar(id, dados) {
-        const resultado = await executar(
+    static async atualizar(id, dados, idProntuario, conexao) {
+        const resultado = await conexao.execute(
             `UPDATE ATENDIMENTO
             SET ID_PACIENTE = :idPaciente,
                 ID_PROFISSIONAL = :idProfissional,
+                ID_PRONTUARIO = :idProntuario,
                 DATA_ATENDIMENTO = TO_DATE(:dataAtendimento, 'YYYY-MM-DD'),
                 HORA_INICIO = :horaInicio,
                 HORA_FIM = :horaFim,
@@ -112,12 +121,12 @@ class AtendimentoRepository {
                 id,
                 idPaciente: dados.idPaciente,
                 idProfissional: dados.idProfissional,
+                idProntuario,
                 dataAtendimento: dados.dataAtendimento,
                 horaInicio: dados.horaInicio,
-                horaFim: dados.horaFim || null,
+                horaFim: dados.horaFim,
                 status: dados.status
-            },
-            { autoCommit: true }
+            }
         );
 
         return resultado.rowsAffected > 0;
@@ -126,7 +135,8 @@ class AtendimentoRepository {
     // DELETE
     static async excluir(id) {
         const resultado = await executar(
-            `DELETE FROM ATENDIMENTO WHERE ID_ATENDIMENTO = :id`,
+            `DELETE FROM ATENDIMENTO
+            WHERE ID_ATENDIMENTO = :id`,
             { id },
             { autoCommit: true }
         );
