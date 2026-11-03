@@ -1,3 +1,4 @@
+
 const Profissional = require('../models/Profissional');
 
 function statusErroValidacao(error) {
@@ -7,7 +8,12 @@ function statusErroValidacao(error) {
         'obrigatórios',
         'obrigatório',
         'inválido',
-        'já cadastrado'
+        'inválida',
+        'já cadastrado',
+        'não encontrada',
+        'função inválida',
+        'não permitido',
+        'é obrigatório'
     ];
 
     return erros.some(item => mensagem.includes(item)) ? 400 : 500;
@@ -44,12 +50,8 @@ const listarProfissionais = async (req, res) => {
     } catch (error) {
         console.error('Erro ao listar profissionais:', error);
 
-        const status = statusErroValidacao(error);
-
-        return res.status(status).json({
-            erro: status === 500
-                ? 'Erro ao listar profissionais.'
-                : error.message
+        return res.status(500).json({
+            erro: 'Erro ao listar profissionais.'
         });
     }
 };
@@ -94,8 +96,7 @@ const atualizarProfissional = async (req, res) => {
             });
         }
 
-        const profissional =
-            await Profissional.atualizar(id, req.body);
+        const profissional = await Profissional.atualizar(id, req.body);
 
         if (!profissional) {
             return res.status(404).json({

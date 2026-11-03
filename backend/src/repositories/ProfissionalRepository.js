@@ -1,12 +1,16 @@
+
 const { executar } = require('../config/database');
+const oracledb = require('oracledb');
 
 class ProfissionalRepository {
 
     // Verifica se o e-mail já está cadastrado
     static async emailExiste(email, ignorarId = null) {
-        let sql = `SELECT ID_PROFISSIONAL
+        let sql = `
+            SELECT ID_PROFISSIONAL
             FROM PROFISSIONAL
-            WHERE LOWER(EMAIL) = LOWER(:email)`;
+            WHERE LOWER(EMAIL) = LOWER(:email)
+        `;
 
         const binds = { email };
 
@@ -22,9 +26,11 @@ class ProfissionalRepository {
 
     // Verifica se o CRM ou COREN já está cadastrado
     static async registroExiste(registro, ignorarId = null) {
-        let sql = `SELECT ID_PROFISSIONAL
+        let sql = `
+            SELECT ID_PROFISSIONAL
             FROM PROFISSIONAL
-            WHERE REGISTRO_PROFISSIONAL = :registro`;
+            WHERE REGISTRO_PROFISSIONAL = :registro
+        `;
 
         const binds = { registro };
 
@@ -38,7 +44,21 @@ class ProfissionalRepository {
         return resultado.rows.length > 0;
     }
 
-    // CREATE
+    // Verifica se a função existe e busca seus dados
+    static async buscarFuncaoPorId(idFuncao) {
+        const resultado = await executar(
+            `SELECT
+                ID_FUNCAO AS "idFuncao",
+                NOME_FUNCAO AS "nomeFuncao"
+            FROM FUNCAO
+            WHERE ID_FUNCAO = :idFuncao`,
+            { idFuncao }
+        );
+
+        return resultado.rows[0] || null;
+    }
+
+    // CREATE: cadastrar profissional
     static async criar(dados) {
         const resultado = await executar(
             `INSERT INTO PROFISSIONAL (
@@ -46,14 +66,14 @@ class ProfissionalRepository {
                 EMAIL,
                 SENHA,
                 REGISTRO_PROFISSIONAL,
-                TIPO_FUNCAO,
+                ID_FUNCAO,
                 ESPECIALIDADE
             ) VALUES (
                 :nome,
                 :email,
                 :senha,
                 :registro,
-                :funcao,
+                :idFuncao,
                 :especialidade
             )
             RETURNING ID_PROFISSIONAL INTO :id`,
@@ -62,11 +82,11 @@ class ProfissionalRepository {
                 email: dados.email,
                 senha: dados.senha,
                 registro: dados.registroProfissional,
-                funcao: dados.tipoFuncao,
-                especialidade: dados.especialidade || null,
+                idFuncao: dados.idFuncao,
+                especialidade: dados.especialidade,
                 id: {
-                    dir: require('oracledb').BIND_OUT,
-                    type: require('oracledb').NUMBER
+                    dir: oracledb.BIND_OUT,
+                    type: oracledb.NUMBER
                 }
             },
             { autoCommit: true }
@@ -79,14 +99,17 @@ class ProfissionalRepository {
     static async listarTodos() {
         const resultado = await executar(`
             SELECT
-                ID_PROFISSIONAL AS "id",
-                NOME AS "nome",
-                EMAIL AS "email",
-                REGISTRO_PROFISSIONAL AS "registroProfissional",
-                TIPO_FUNCAO AS "tipoFuncao",
-                ESPECIALIDADE AS "especialidade"
-            FROM PROFISSIONAL
-            ORDER BY NOME
+                P.ID_PROFISSIONAL AS "id",
+                P.NOME AS "nome",
+                P.EMAIL AS "email",
+                P.REGISTRO_PROFISSIONAL AS "registroProfissional",
+                P.ID_FUNCAO AS "idFuncao",
+                F.NOME_FUNCAO AS "nomeFuncao",
+                P.ESPECIALIDADE AS "especialidade"
+            FROM PROFISSIONAL P
+            INNER JOIN FUNCAO F
+                ON P.ID_FUNCAO = F.ID_FUNCAO
+            ORDER BY P.NOME
         `);
 
         return resultado.rows;
@@ -96,14 +119,17 @@ class ProfissionalRepository {
     static async buscarPorId(id) {
         const resultado = await executar(
             `SELECT
-                ID_PROFISSIONAL AS "id",
-                NOME AS "nome",
-                EMAIL AS "email",
-                REGISTRO_PROFISSIONAL AS "registroProfissional",
-                TIPO_FUNCAO AS "tipoFuncao",
-                ESPECIALIDADE AS "especialidade"
-            FROM PROFISSIONAL
-            WHERE ID_PROFISSIONAL = :id`,
+                P.ID_PROFISSIONAL AS "id",
+                P.NOME AS "nome",
+                P.EMAIL AS "email",
+                P.REGISTRO_PROFISSIONAL AS "registroProfissional",
+                P.ID_FUNCAO AS "idFuncao",
+                F.NOME_FUNCAO AS "nomeFuncao",
+                P.ESPECIALIDADE AS "especialidade"
+            FROM PROFISSIONAL P
+            INNER JOIN FUNCAO F
+                ON P.ID_FUNCAO = F.ID_FUNCAO
+            WHERE P.ID_PROFISSIONAL = :id`,
             { id }
         );
 
@@ -117,7 +143,7 @@ class ProfissionalRepository {
             SET NOME = :nome,
                 EMAIL = :email,
                 REGISTRO_PROFISSIONAL = :registro,
-                TIPO_FUNCAO = :funcao,
+                ID_FUNCAO = :idFuncao,
                 ESPECIALIDADE = :especialidade
         `;
 
@@ -126,10 +152,11 @@ class ProfissionalRepository {
             nome: dados.nome,
             email: dados.email,
             registro: dados.registroProfissional,
-            funcao: dados.tipoFuncao,
-            especialidade: dados.especialidade || null
+            idFuncao: dados.idFuncao,
+            especialidade: dados.especialidade
         };
 
+        // Atualiza a senha somente se uma nova senha for enviada
         if (dados.senha) {
             sql += ', SENHA = :senha';
             binds.senha = dados.senha;
@@ -149,7 +176,8 @@ class ProfissionalRepository {
     // DELETE
     static async excluir(id) {
         const resultado = await executar(
-            `DELETE FROM PROFISSIONAL WHERE ID_PROFISSIONAL = :id`,
+            `DELETE FROM PROFISSIONAL
+            WHERE ID_PROFISSIONAL = :id`,
             { id },
             { autoCommit: true }
         );
