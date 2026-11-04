@@ -70,7 +70,7 @@
               (item.atendimentoMedico.medicoEmail
                 ? item.atendimentoMedico.medicoEmail === sessao.email
                 : item.atendimentoMedico.medico === sessao.nome)
-                ? '<a class="ghost" href="prontuario.html?paciente=' +
+                ? '<a class="ghost" href="medico/prontuario.html?paciente=' +
                   encodeURIComponent(item.pacienteId) +
                   '">Ver prontuário</a>'
                 : "—") +

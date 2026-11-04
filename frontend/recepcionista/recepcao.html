@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MedFlow · Recepção</title>
-    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="../css/styles.css" />
   </head>
   <body class="app">
     <aside class="sidebar" id="sidebar"></aside>
@@ -88,7 +88,12 @@
               <div class="field field-obrigatorio">
                 <label for="rg">RG</label>
                 <div class="control">
-                  <input id="rg" maxlength="20" required />
+                  <input
+                    id="rg"
+                    maxlength="12"
+                    placeholder="Ex: 12.345.678-9"
+                    required
+                  />
                 </div>
                 <div class="erro" id="erro-rg"></div>
               </div>
@@ -193,10 +198,10 @@
       </section>
     </main>
 
-    <script src="js/sessao.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/validacao.js"></script>
-    <script src="js/ui.js"></script>
+    <script src="../js/sessao.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/validacao.js"></script>
+    <script src="../js/ui.js"></script>
     <script src="js/recepcao.js"></script>
   </body>
 </html>

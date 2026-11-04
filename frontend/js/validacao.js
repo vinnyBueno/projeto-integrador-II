@@ -213,7 +213,7 @@
     if (!emergencia.ok) erros.telefoneEmergencia = emergencia.mensagem;
     else limpo.telefoneEmergencia = emergencia.valor;
     const camposExtras = {
-      rg: 20,
+      rg: 12,
       nomePai: 80,
       nomeMae: 80,
       cep: 9,

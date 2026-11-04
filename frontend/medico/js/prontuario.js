@@ -18,7 +18,7 @@
     },
   );
   const voltar =
-    '<p><a class="ghost" href="historico.html">← Voltar ao histórico</a></p>';
+    '<p><a class="ghost" href="../historico.html">← Voltar ao histórico</a></p>';
   if (!registros.length) {
     host.innerHTML =
       voltar +

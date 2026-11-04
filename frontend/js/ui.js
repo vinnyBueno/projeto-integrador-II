@@ -1,4 +1,8 @@
 (function (global) {
+  const raizFrontend = new URL("../", document.currentScript.src);
+  function rota(caminho) {
+    return new URL(caminho, raizFrontend).href;
+  }
   function iniciais(nome) {
     return String(nome || "")
       .split(/\s+/)
@@ -127,13 +131,13 @@
       return [
         {
           id: "inicio",
-          href: "recepcao.html",
+          href: rota("recepcionista/recepcao.html"),
           rotulo: "Início",
           icone: "home",
         },
         {
           id: "historico",
-          href: "historico.html",
+          href: rota("historico.html"),
           rotulo: "Histórico",
           icone: "clock",
         },
@@ -141,20 +145,30 @@
     }
     if (perfil === "medico") {
       return [
-        { id: "inicio", href: "fila.html", rotulo: "Início", icone: "home" },
+        {
+          id: "inicio",
+          href: rota("medico/fila.html"),
+          rotulo: "Início",
+          icone: "home",
+        },
         {
           id: "historico",
-          href: "historico.html",
+          href: rota("historico.html"),
           rotulo: "Histórico",
           icone: "clock",
         },
       ];
     }
     return [
-      { id: "inicio", href: "pacientes.html", rotulo: "Início", icone: "home" },
+      {
+        id: "inicio",
+        href: rota("enfermeiro/pacientes.html"),
+        rotulo: "Início",
+        icone: "home",
+      },
       {
         id: "historico",
-        href: "historico.html",
+        href: rota("historico.html"),
         rotulo: "Histórico",
         icone: "clock",
       },
@@ -186,7 +200,7 @@
         .join("");
       sidebar.innerHTML =
         '<a class="brand" href="' +
-        (sessao ? sessao.inicio : "index.html") +
+        (sessao ? sessao.inicio : rota("login/index.html")) +
         '">' +
         '<span class="brand-mark">' +
         '<svg viewBox="0 0 36 36" aria-hidden="true"><path d="M4 18h6l3-8 5 16 3-8h11" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
@@ -225,7 +239,7 @@
     if (btnSair) {
       btnSair.addEventListener("click", function () {
         if (global.MedFlowSessao) MedFlowSessao.sair();
-        window.location.href = "index.html";
+        window.location.href = rota("login/index.html");
       });
     }
   }

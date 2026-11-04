@@ -23,3 +23,15 @@ Os pacientes e atendimentos da demonstração ficam no `localStorage` do navegad
 `js/api.js` contém a simulação local das operações usadas pelas telas. O grupo pode substituir essa camada pelas chamadas à API do backend. `js/sessao.js` concentra o acesso demonstrativo, a ser substituído pela autenticação real.
 
 O servidor Python, seu executor Node.js e a camada de chamadas remotas foram retirados. Um eventual arquivo local `medflow.sqlite3` antigo não é usado pelo frontend e permanece ignorado pelo Git.
+
+## Organização dos arquivos
+
+- `login/`: login e seu JavaScript.
+- `recepcionista/`: recepção e seu JavaScript.
+- `enfermeiro/`: pacientes e triagem, com seus scripts.
+- `medico/`: fila, atendimento e prontuário, com seus scripts.
+- `css/`: estilos comuns.
+- `js/`: scripts comuns e script do histórico.
+- `historico.html`: histórico usado pelos três perfis.
+
+O `index.html` da raiz encaminha para `login/index.html`, preservando a entrada pelos atalhos existentes.
