@@ -1,21 +1,41 @@
+
 const express = require('express');
 const router = express.Router();
 
 const profissionalController = require('../controllers/profissionalController');
 
-// rota para cadastrar um novo profissional
-router.post('/cadastrar', profissionalController.cadastrarProfissional);
+const { autenticarToken, autorizarFuncoes } = require('../middlewares/authMiddleware');
 
-// rota para listar todos os profissionais
-router.get('/listar', profissionalController.listarProfissionais);
+// CREATE: somente recepcionista pode cadastrar um novo profissional
+router.post(
+    '/cadastrar',
+    autenticarToken,
+    autorizarFuncoes('RECEPCIONISTA'),
+    profissionalController.cadastrarProfissional
+);
 
-// rota para buscar um profissional por ID
-router.get('/buscar/:id', profissionalController.buscarProfissionalPorId);
+// READ: todas as funções podem listar e buscar profissionais
+router.get(
+    '/listar',
+    autenticarToken,
+    autorizarFuncoes('RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'),
+    profissionalController.listarProfissionais
+);
 
-// rota para atualizar um profissional por ID
-router.put('/atualizar/:id', profissionalController.atualizarProfissional);
+router.get(
+    '/buscar/:id',
+    autenticarToken,
+    autorizarFuncoes('RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'),
+    profissionalController.buscarProfissionalPorId
+);
 
-// rota para deletar um profissional por ID
-router.delete('/excluir/:id', profissionalController.excluirProfissional);
+// UPDATE: somente recepcionista pode atualizar dados dos profissionais
+router.put(
+    '/atualizar/:id',
+    autenticarToken,
+    autorizarFuncoes('RECEPCIONISTA'),
+    profissionalController.atualizarProfissional
+);
+
 
 module.exports = router;

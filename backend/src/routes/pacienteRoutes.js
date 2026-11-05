@@ -1,3 +1,4 @@
+
 const express = require('express');
 const router = express.Router();
 
@@ -5,23 +6,19 @@ const {
     cadastrarPaciente,
     listarPacientes,
     buscarPacientePorId,
-    atualizarPaciente,
-    excluirPaciente
+    atualizarPaciente
 } = require('../controllers/pacienteController');
 
-// rota para cadastrar um novo paciente
-router.post('/cadastrar', cadastrarPaciente);
+const { autenticarToken, autorizarFuncoes } = require('../middlewares/authMiddleware');
 
-// rota para listar todos os pacientes
-router.get('/listar', listarPacientes);
+// CREATE: somente recepcionista pode cadastrar pacientes
+router.post('/cadastrar', autenticarToken, autorizarFuncoes('RECEPCIONISTA'), cadastrarPaciente);
 
-// rota para buscar um paciente por ID
-router.get('/buscar/:id', buscarPacientePorId);
+// READ: todas as funções podem listar e buscar pacientes
+router.get('/listar', autenticarToken, autorizarFuncoes('RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'), listarPacientes);
+router.get('/buscar/:id', autenticarToken, autorizarFuncoes('RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'), buscarPacientePorId);
 
-// rota para atualizar um paciente por ID
-router.put('/atualizar/:id', atualizarPaciente);
-
-// rota para excluir um paciente por ID
-router.delete('/excluir/:id', excluirPaciente);
+// UPDATE: somente recepcionista pode atualizar dados dos pacientes
+router.put('/atualizar/:id', autenticarToken, autorizarFuncoes('RECEPCIONISTA'), atualizarPaciente);
 
 module.exports = router;
