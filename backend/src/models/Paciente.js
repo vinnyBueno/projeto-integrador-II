@@ -6,10 +6,15 @@ const LIMITES = {
     rg: 20,
     genero: 20,
     email: 100,
-    logradouro: 100,
-    numeroEndereco: 5,
-    bairro: 60,
-    cidade: 60
+    convenio: 40,
+    nomePai: 80,
+    nomeMae: 80,
+    logradouro: 120,
+    numeroEndereco: 20,
+    complemento: 80,
+    bairro: 80,
+    cidade: 80,
+    uf: 2
 };
 
 class Paciente {
@@ -79,6 +84,12 @@ class Paciente {
             throw new Error('CEP inválido. Informe 8 números.');
         }
 
+        const ufTexto = this.texto(dados.uf, 'uf', 'UF');
+        const uf = ufTexto ? ufTexto.toUpperCase() : null;
+        if (uf && !/^[A-Z]{2}$/.test(uf)) {
+            throw new Error('UF inválida. Use a sigla com 2 letras.');
+        }
+
         return {
             nome,
             cpf,
@@ -91,6 +102,9 @@ class Paciente {
                 'Telefone de emergência'
             ),
             email: this.texto(dados.email, 'email', 'E-mail'),
+            convenio: this.texto(dados.convenio, 'convenio', 'Convênio'),
+            nomePai: this.texto(dados.nomePai, 'nomePai', 'Nome do pai'),
+            nomeMae: this.texto(dados.nomeMae, 'nomeMae', 'Nome da mãe'),
             cep: cep || null,
             logradouro: this.texto(dados.logradouro, 'logradouro', 'Logradouro'),
             numeroEndereco: this.texto(
@@ -98,8 +112,10 @@ class Paciente {
                 'numeroEndereco',
                 'Número do endereço'
             ),
+            complemento: this.texto(dados.complemento, 'complemento', 'Complemento'),
             bairro: this.texto(dados.bairro, 'bairro', 'Bairro'),
-            cidade: this.texto(dados.cidade, 'cidade', 'Cidade')
+            cidade: this.texto(dados.cidade, 'cidade', 'Cidade'),
+            uf
         };
     }
 

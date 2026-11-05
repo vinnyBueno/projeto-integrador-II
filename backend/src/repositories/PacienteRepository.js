@@ -12,11 +12,16 @@ const COLUNAS = `
     TELEFONE AS "telefone",
     TELEFONE_EMERGENCIA AS "telefoneEmergencia",
     EMAIL AS "email",
+    CONVENIO AS "convenio",
+    NOME_PAI AS "nomePai",
+    NOME_MAE AS "nomeMae",
     CEP AS "cep",
     LOGRADOURO AS "logradouro",
     NUMERO AS "numeroEndereco",
+    COMPLEMENTO AS "complemento",
     BAIRRO AS "bairro",
-    CIDADE AS "cidade"
+    CIDADE AS "cidade",
+    UF AS "uf"
 `;
 
 // Converte os dados já validados nos binds usados no INSERT e no UPDATE.
@@ -30,11 +35,16 @@ function binds(dados) {
         telefone: dados.telefone,
         telefoneEmergencia: dados.telefoneEmergencia,
         email: dados.email,
+        convenio: dados.convenio,
+        nomePai: dados.nomePai,
+        nomeMae: dados.nomeMae,
         cep: dados.cep,
         logradouro: dados.logradouro,
         numero: dados.numeroEndereco,
+        complemento: dados.complemento,
         bairro: dados.bairro,
-        cidade: dados.cidade
+        cidade: dados.cidade,
+        uf: dados.uf
     };
 }
 
@@ -46,12 +56,16 @@ class PacienteRepository {
             `INSERT INTO PACIENTE (
                 NOME, CPF, RG, GENERO, DATA_NASCIMENTO,
                 TELEFONE, TELEFONE_EMERGENCIA, EMAIL,
-                CEP, LOGRADOURO, NUMERO, BAIRRO, CIDADE
+                CONVENIO, NOME_PAI, NOME_MAE,
+                CEP, LOGRADOURO, NUMERO, COMPLEMENTO,
+                BAIRRO, CIDADE, UF
             ) VALUES (
                 :nome, :cpf, :rg, :genero,
                 TO_DATE(:dataNascimento, 'YYYY-MM-DD'),
                 :telefone, :telefoneEmergencia, :email,
-                :cep, :logradouro, :numero, :bairro, :cidade
+                :convenio, :nomePai, :nomeMae,
+                :cep, :logradouro, :numero, :complemento,
+                :bairro, :cidade, :uf
             )
             RETURNING ID_PACIENTE INTO :id`,
             {
@@ -95,11 +109,16 @@ class PacienteRepository {
                 TELEFONE = :telefone,
                 TELEFONE_EMERGENCIA = :telefoneEmergencia,
                 EMAIL = :email,
+                CONVENIO = :convenio,
+                NOME_PAI = :nomePai,
+                NOME_MAE = :nomeMae,
                 CEP = :cep,
                 LOGRADOURO = :logradouro,
                 NUMERO = :numero,
+                COMPLEMENTO = :complemento,
                 BAIRRO = :bairro,
-                CIDADE = :cidade
+                CIDADE = :cidade,
+                UF = :uf
             WHERE ID_PACIENTE = :id`,
             { ...binds(dados), id },
             { autoCommit: true }
