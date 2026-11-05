@@ -1,44 +1,62 @@
 const { executar } = require('../config/database');
 const oracledb = require('oracledb');
 
+// Colunas devolvidas ao frontend, com os nomes que ele já usa.
+const COLUNAS = `
+    ID_PACIENTE AS "id",
+    NOME AS "nome",
+    CPF AS "cpf",
+    RG AS "rg",
+    GENERO AS "genero",
+    TO_CHAR(DATA_NASCIMENTO, 'YYYY-MM-DD') AS "dataNascimento",
+    TELEFONE AS "telefone",
+    TELEFONE_EMERGENCIA AS "telefoneEmergencia",
+    EMAIL AS "email",
+    CEP AS "cep",
+    LOGRADOURO AS "logradouro",
+    NUMERO AS "numeroEndereco",
+    BAIRRO AS "bairro",
+    CIDADE AS "cidade"
+`;
+
+// Converte os dados já validados nos binds usados no INSERT e no UPDATE.
+function binds(dados) {
+    return {
+        nome: dados.nome,
+        cpf: dados.cpf,
+        rg: dados.rg,
+        genero: dados.genero,
+        dataNascimento: dados.dataNascimento,
+        telefone: dados.telefone,
+        telefoneEmergencia: dados.telefoneEmergencia,
+        email: dados.email,
+        cep: dados.cep,
+        logradouro: dados.logradouro,
+        numero: dados.numeroEndereco,
+        bairro: dados.bairro,
+        cidade: dados.cidade
+    };
+}
+
 class PacienteRepository {
 
     // CREATE: cadastrar paciente
     static async criar(dados) {
         const resultado = await executar(
             `INSERT INTO PACIENTE (
-                NOME,
-                CPF,
-                RG,
-                ENDERECO,
-                TELEFONE,
-                EMAIL,
-                GENERO,
-                DATA_NASCIMENTO
+                NOME, CPF, RG, GENERO, DATA_NASCIMENTO,
+                TELEFONE, TELEFONE_EMERGENCIA, EMAIL,
+                CEP, LOGRADOURO, NUMERO, BAIRRO, CIDADE
             ) VALUES (
-                :nome,
-                :cpf,
-                :rg,
-                :endereco,
-                :telefone,
-                :email,
-                :genero,
-                TO_DATE(:dataNascimento, 'YYYY-MM-DD')
+                :nome, :cpf, :rg, :genero,
+                TO_DATE(:dataNascimento, 'YYYY-MM-DD'),
+                :telefone, :telefoneEmergencia, :email,
+                :cep, :logradouro, :numero, :bairro, :cidade
             )
             RETURNING ID_PACIENTE INTO :id`,
             {
-                nome: dados.nome,
-                cpf: dados.cpf,
-                rg: dados.rg,
-                endereco: dados.endereco,
-                telefone: dados.telefone,
-                email: dados.email,
-                genero: dados.genero,
-                dataNascimento: dados.dataNascimento,
-                id: {
-                    dir: oracledb.BIND_OUT,
-                    type: oracledb.NUMBER
-                }
+                ...binds(dados),
+                id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
             },
             { autoCommit: true }
         );
@@ -48,21 +66,9 @@ class PacienteRepository {
 
     // READ: listar todos
     static async listarTodos() {
-        const resultado = await executar(`
-            SELECT
-                ID_PACIENTE AS "id",
-                NOME AS "nome",
-                CPF AS "cpf",
-                RG AS "rg",
-                ENDERECO AS "endereco",
-                TELEFONE AS "telefone",
-                EMAIL AS "email",
-                GENERO AS "genero",
-                TO_CHAR(DATA_NASCIMENTO, 'YYYY-MM-DD')
-                    AS "dataNascimento"
-            FROM PACIENTE
-            ORDER BY NOME
-        `);
+        const resultado = await executar(
+            `SELECT ${COLUNAS} FROM PACIENTE ORDER BY NOME`
+        );
 
         return resultado.rows;
     }
@@ -70,19 +76,7 @@ class PacienteRepository {
     // READ: buscar por ID
     static async buscarPorId(id) {
         const resultado = await executar(
-            `SELECT
-                ID_PACIENTE AS "id",
-                NOME AS "nome",
-                CPF AS "cpf",
-                RG AS "rg",
-                ENDERECO AS "endereco",
-                TELEFONE AS "telefone",
-                EMAIL AS "email",
-                GENERO AS "genero",
-                TO_CHAR(DATA_NASCIMENTO, 'YYYY-MM-DD')
-                    AS "dataNascimento"
-            FROM PACIENTE
-            WHERE ID_PACIENTE = :id`,
+            `SELECT ${COLUNAS} FROM PACIENTE WHERE ID_PACIENTE = :id`,
             { id }
         );
 
@@ -96,23 +90,18 @@ class PacienteRepository {
             SET NOME = :nome,
                 CPF = :cpf,
                 RG = :rg,
-                ENDERECO = :endereco,
-                TELEFONE = :telefone,
-                EMAIL = :email,
                 GENERO = :genero,
-                DATA_NASCIMENTO = TO_DATE(:dataNascimento, 'YYYY-MM-DD')
+                DATA_NASCIMENTO = TO_DATE(:dataNascimento, 'YYYY-MM-DD'),
+                TELEFONE = :telefone,
+                TELEFONE_EMERGENCIA = :telefoneEmergencia,
+                EMAIL = :email,
+                CEP = :cep,
+                LOGRADOURO = :logradouro,
+                NUMERO = :numero,
+                BAIRRO = :bairro,
+                CIDADE = :cidade
             WHERE ID_PACIENTE = :id`,
-            {
-                id,
-                nome: dados.nome,
-                cpf: dados.cpf,
-                rg: dados.rg,
-                endereco: dados.endereco,
-                telefone: dados.telefone,
-                email: dados.email,
-                genero: dados.genero,
-                dataNascimento: dados.dataNascimento
-            },
+            { ...binds(dados), id },
             { autoCommit: true }
         );
 
@@ -130,24 +119,18 @@ class PacienteRepository {
         return resultado.rowsAffected > 0;
     }
 
-    
     // Verifica se o CPF já está cadastrado em outro paciente
     static async cpfExiste(cpf, ignorarId = null) {
-        let sql = `
-            SELECT ID_PACIENTE
-            FROM PACIENTE
-            WHERE CPF = :cpf
-        `;
-
-        const binds = { cpf };
+        let sql = `SELECT ID_PACIENTE FROM PACIENTE WHERE CPF = :cpf`;
+        const parametros = { cpf };
 
         // Ignora o próprio paciente durante a atualização
         if (ignorarId !== null) {
             sql += ' AND ID_PACIENTE <> :id';
-            binds.id = ignorarId;
+            parametros.id = ignorarId;
         }
 
-        const resultado = await executar(sql, binds);
+        const resultado = await executar(sql, parametros);
 
         return resultado.rows.length > 0;
     }

@@ -1,12 +1,67 @@
 const PacienteRepository = require('../repositories/PacienteRepository');
 
-class Paciente {
-    // Valida os dados do paciente
-    static validarDados(dados) {
-        const { nome, dataNascimento } = dados;
+// Campos de texto e o tamanho máximo de cada coluna no banco (tables.sql).
+const LIMITES = {
+    nome: 100,
+    rg: 20,
+    genero: 20,
+    email: 100,
+    logradouro: 100,
+    numeroEndereco: 5,
+    bairro: 60,
+    cidade: 60
+};
 
-        if (!nome || !nome.trim()) {
+class Paciente {
+
+    // Remove tudo que não for número (pontos, traços, parênteses, espaços)
+    static somenteDigitos(valor) {
+        return valor == null ? '' : String(valor).replace(/\D/g, '');
+    }
+
+    // Limpa um campo de texto e confere o tamanho. Vazio vira null.
+    static texto(valor, campo, rotulo) {
+        if (valor == null) return null;
+
+        const limpo = String(valor).trim();
+        if (!limpo) return null;
+
+        if (limpo.length > LIMITES[campo]) {
+            throw new Error(
+                `${rotulo} inválido: máximo de ${LIMITES[campo]} caracteres.`
+            );
+        }
+
+        return limpo;
+    }
+
+    // Telefone: só números, até 15 dígitos. Vazio vira null.
+    static telefone(valor, rotulo) {
+        const digitos = this.somenteDigitos(valor);
+        if (!digitos) return null;
+
+        if (digitos.length < 10 || digitos.length > 15) {
+            throw new Error(`${rotulo} inválido.`);
+        }
+
+        return digitos;
+    }
+
+    // Valida os dados do paciente e devolve o objeto limpo
+    static validarDados(dados) {
+        const { dataNascimento } = dados;
+
+        const nome = this.texto(dados.nome, 'nome', 'Nome');
+        if (!nome) {
             throw new Error('Nome do paciente é obrigatório.');
+        }
+
+        const cpf = this.somenteDigitos(dados.cpf);
+        if (!cpf) {
+            throw new Error('CPF do paciente é obrigatório.');
+        }
+        if (cpf.length !== 11) {
+            throw new Error('CPF inválido. Informe 11 números.');
         }
 
         if (dataNascimento) {
@@ -19,15 +74,32 @@ class Paciente {
             }
         }
 
+        const cep = this.somenteDigitos(dados.cep);
+        if (cep && cep.length !== 8) {
+            throw new Error('CEP inválido. Informe 8 números.');
+        }
+
         return {
-            nome: nome.trim(),
-            cpf: dados.cpf || null,
-            rg: dados.rg || null,
-            endereco: dados.endereco || null,
-            telefone: dados.telefone || null,
-            email: dados.email || null,
-            genero: dados.genero || null,
-            dataNascimento: dataNascimento || null
+            nome,
+            cpf,
+            rg: this.texto(dados.rg, 'rg', 'RG'),
+            genero: this.texto(dados.genero, 'genero', 'Gênero'),
+            dataNascimento: dataNascimento || null,
+            telefone: this.telefone(dados.telefone, 'Telefone'),
+            telefoneEmergencia: this.telefone(
+                dados.telefoneEmergencia,
+                'Telefone de emergência'
+            ),
+            email: this.texto(dados.email, 'email', 'E-mail'),
+            cep: cep || null,
+            logradouro: this.texto(dados.logradouro, 'logradouro', 'Logradouro'),
+            numeroEndereco: this.texto(
+                dados.numeroEndereco,
+                'numeroEndereco',
+                'Número do endereço'
+            ),
+            bairro: this.texto(dados.bairro, 'bairro', 'Bairro'),
+            cidade: this.texto(dados.cidade, 'cidade', 'Cidade')
         };
     }
 
@@ -35,9 +107,7 @@ class Paciente {
     static dataValida(data) {
         const [ano, mes, dia] = data.split('-').map(Number);
 
-        const dataTeste = new Date(
-            Date.UTC(ano, mes - 1, dia)
-        );
+        const dataTeste = new Date(Date.UTC(ano, mes - 1, dia));
 
         return dataTeste.getUTCFullYear() === ano &&
             dataTeste.getUTCMonth() === mes - 1 &&
@@ -48,12 +118,13 @@ class Paciente {
     static async cadastrar(dados) {
         const dadosValidados = this.validarDados(dados);
 
+        if (await PacienteRepository.cpfExiste(dadosValidados.cpf)) {
+            throw new Error('CPF já cadastrado.');
+        }
+
         const id = await PacienteRepository.criar(dadosValidados);
 
-        return {
-            id,
-            ...dadosValidados
-        };
+        return { id, ...dadosValidados };
     }
 
     // READ: listar todos
@@ -75,37 +146,27 @@ class Paciente {
         }
 
         // Busca o paciente que já está cadastrado
-        const pacienteExistente = await this.buscarPorId(id);
+        const existente = await this.buscarPorId(id);
 
-        if (!pacienteExistente) {
+        if (!existente) {
             return null;
         }
 
-        // Mantém os valores antigos dos campos não enviados
-        const dadosAtualizados = {
-            nome: dados.nome ?? pacienteExistente.nome,
-            cpf: dados.cpf ?? pacienteExistente.cpf,
-            rg: dados.rg ?? pacienteExistente.rg,
-            endereco: dados.endereco ?? pacienteExistente.endereco,
-            telefone: dados.telefone ?? pacienteExistente.telefone,
-            email: dados.email ?? pacienteExistente.email,
-            genero: dados.genero ?? pacienteExistente.genero,
-            dataNascimento:
-                dados.dataNascimento ?? pacienteExistente.dataNascimento
-        };
+        // Mantém os valores antigos dos campos que não foram enviados
+        const dadosAtualizados = {};
+        for (const campo of Object.keys(existente)) {
+            if (campo === 'id') continue;
+            dadosAtualizados[campo] = dados[campo] ?? existente[campo];
+        }
 
         // Valida os dados completos antes de salvar
         const dadosValidados = this.validarDados(dadosAtualizados);
 
         // Verifica se o CPF já pertence a outro paciente
-        if (
-            dadosValidados.cpf &&
-            await PacienteRepository.cpfExiste(dadosValidados.cpf, id)
-        ) {
+        if (await PacienteRepository.cpfExiste(dadosValidados.cpf, id)) {
             throw new Error('CPF já cadastrado.');
         }
 
-        // Salva os dados atualizados
         await PacienteRepository.atualizar(id, dadosValidados);
 
         // Retorna o paciente com os valores atualizados

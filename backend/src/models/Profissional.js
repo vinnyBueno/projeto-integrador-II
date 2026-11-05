@@ -1,5 +1,5 @@
 
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const ProfissionalRepository = require('../repositories/ProfissionalRepository');
 
 class Profissional {

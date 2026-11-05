@@ -3,7 +3,6 @@ const cors = require('cors');
 
 const logger = require('./src/middlewares/logger');
 
-const { conectarBanco } = require('./src/config/database');
 
 const profissionalRoutes = require('./src/routes/profissionalRoutes');
 const pacienteRoutes = require('./src/routes/pacienteRoutes');
@@ -37,30 +36,6 @@ app.use('/api/funcoes', funcaoRoutes);
 
 // Define o endereço base das rotas de serviços.
 app.use('/api/servicos', servicoRoutes);
-
-// Função assíncrona responsável por iniciar o sistema.
-async function iniciarServidor() {
-    try {
-        // Primeiro, estabelece a conexão com o banco de dados Oracle.
-        await conectarBanco();
-
-        // Somente após as etapas anteriores inicia o servidor.
-        app.listen(3000, () => {
-            console.log('Servidor rodando na porta 3000!');
-        });
-
-    } catch (erro) {
-
-        // Exibe o erro caso a conexão ou o bootstrap falhem.
-        console.error('Erro ao iniciar o servidor:', erro);
-
-        // Encerra a aplicação com código de erro.
-        process.exit(1);
-    }
-}
-
-// Chama a função para iniciar o servidor.
-iniciarServidor();
 
 
 // Exporta a instância do Express para que outros arquivos
