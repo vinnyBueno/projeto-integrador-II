@@ -10,6 +10,7 @@ const pacienteRoutes = require('./src/routes/pacienteRoutes');
 const atendimentoRoutes = require('./src/routes/atendimentoRoutes');
 const funcaoRoutes = require('./src/routes/funcaoRoutes');
 const servicoRoutes = require('./src/routes/servicoRoutes');
+const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
 
@@ -37,6 +38,9 @@ app.use('/api/funcoes', funcaoRoutes);
 
 // Define o endereço base das rotas de serviços.
 app.use('/api/servicos', servicoRoutes);
+
+// Define o endereço base das rotas de autenticação.
+app.use('/api/auth', authRoutes);
 
 // Função assíncrona responsável por iniciar o sistema.
 async function iniciarServidor() {
