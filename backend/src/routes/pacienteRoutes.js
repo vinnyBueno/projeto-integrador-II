@@ -5,6 +5,7 @@ const {
     cadastrarPaciente,
     listarPacientes,
     buscarPacientePorId,
+    buscarPacientePorCpf,
     atualizarPaciente,
     excluirPaciente
 } = require('../controllers/pacienteController');
@@ -17,6 +18,9 @@ router.get('/listar', listarPacientes);
 
 // rota para buscar um paciente por ID
 router.get('/buscar/:id', buscarPacientePorId);
+
+// rota para buscar um paciente por CPF
+router.get('/cpf/:cpf', buscarPacientePorCpf);
 
 // rota para atualizar um paciente por ID
 router.put('/atualizar/:id', atualizarPaciente);

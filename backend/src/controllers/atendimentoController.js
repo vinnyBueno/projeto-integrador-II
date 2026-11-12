@@ -1,18 +1,31 @@
 const Atendimento = require('../models/Atendimento');
 
-function statusErroValidacao(error) {
+// Define o código HTTP de um erro.
+// Erros do model já trazem "status"; os demais viram 400 se forem
+// de validação ou 500 se forem inesperados.
+function statusDoErro(error) {
+    if (error.status) return error.status;
+
     const mensagem = error.message.toLowerCase();
 
-    const erros = [
+    const validacao = [
         'inválido',
         'inválida',
-        'não encontrado',
-        'use yyyy-mm-dd',
-        'use hh:mm',
-        'status do atendimento inválido'
+        'não encontrado'
     ];
 
-    return erros.some(item => mensagem.includes(item)) ? 400 : 500;
+    return validacao.some(item => mensagem.includes(item)) ? 400 : 500;
+}
+
+// Responde com o erro, escondendo detalhes internos nos erros 500.
+function responderErro(res, error, mensagemPadrao) {
+    console.error(`${mensagemPadrao}:`, error);
+
+    const status = statusDoErro(error);
+
+    return res.status(status).json({
+        erro: status === 500 ? mensagemPadrao : error.message
+    });
 }
 
 // CREATE
@@ -21,19 +34,11 @@ const cadastrarAtendimento = async (req, res) => {
         const atendimento = await Atendimento.cadastrar(req.body);
 
         return res.status(201).json({
-            mensagem: 'Atendimento cadastrado com sucesso!',
+            mensagem: 'Atendimento aberto com sucesso!',
             atendimento
         });
     } catch (error) {
-        console.error('Erro ao cadastrar atendimento:', error);
-
-        const status = statusErroValidacao(error);
-
-        return res.status(status).json({
-            erro: status === 500
-                ? 'Erro ao cadastrar atendimento.'
-                : error.message
-        });
+        return responderErro(res, error, 'Erro ao cadastrar atendimento.');
     }
 };
 
@@ -44,24 +49,14 @@ const listarAtendimentos = async (req, res) => {
 
         return res.status(200).json(atendimentos);
     } catch (error) {
-        console.error('Erro ao listar atendimentos:', error);
-
-        return res.status(500).json({
-            erro: 'Erro ao listar atendimentos.'
-        });
+        return responderErro(res, error, 'Erro ao listar atendimentos.');
     }
 };
 
 // READ: buscar por ID
 const buscarAtendimentoPorId = async (req, res) => {
     try {
-        const id = Number(req.params.id);
-
-        if (!Number.isInteger(id) || id <= 0) {
-            return res.status(400).json({
-                erro: 'ID do atendimento inválido.'
-            });
-        }
+        const id = Atendimento.validarId(req.params.id, 'atendimento');
 
         const atendimento = await Atendimento.buscarPorId(id);
 
@@ -73,26 +68,17 @@ const buscarAtendimentoPorId = async (req, res) => {
 
         return res.status(200).json(atendimento);
     } catch (error) {
-        console.error('Erro ao buscar atendimento:', error);
-
-        return res.status(500).json({
-            erro: 'Erro ao buscar atendimento.'
-        });
+        return responderErro(res, error, 'Erro ao buscar atendimento.');
     }
 };
 
 // UPDATE
 const atualizarAtendimento = async (req, res) => {
     try {
-        const id = Number(req.params.id);
-
-        if (!Number.isInteger(id) || id <= 0) {
-            return res.status(400).json({
-                erro: 'ID do atendimento inválido.'
-            });
-        }
-
-        const atendimento = await Atendimento.atualizar(id, req.body);
+        const atendimento = await Atendimento.atualizar(
+            req.params.id,
+            req.body
+        );
 
         if (!atendimento) {
             return res.status(404).json({
@@ -105,30 +91,34 @@ const atualizarAtendimento = async (req, res) => {
             atendimento
         });
     } catch (error) {
-        console.error('Erro ao atualizar atendimento:', error);
+        return responderErro(res, error, 'Erro ao atualizar atendimento.');
+    }
+};
 
-        const status = statusErroValidacao(error);
+// UPDATE: cancelar
+const cancelarAtendimento = async (req, res) => {
+    try {
+        const atendimento = await Atendimento.cancelar(req.params.id);
 
-        return res.status(status).json({
-            erro: status === 500
-                ? 'Erro ao atualizar atendimento.'
-                : error.message
+        if (!atendimento) {
+            return res.status(404).json({
+                erro: 'Atendimento não encontrado.'
+            });
+        }
+
+        return res.status(200).json({
+            mensagem: 'Atendimento cancelado com sucesso!',
+            atendimento
         });
+    } catch (error) {
+        return responderErro(res, error, 'Erro ao cancelar atendimento.');
     }
 };
 
 // DELETE
 const excluirAtendimento = async (req, res) => {
     try {
-        const id = Number(req.params.id);
-
-        if (!Number.isInteger(id) || id <= 0) {
-            return res.status(400).json({
-                erro: 'ID do atendimento inválido.'
-            });
-        }
-
-        const excluido = await Atendimento.excluir(id);
+        const excluido = await Atendimento.excluir(req.params.id);
 
         if (!excluido) {
             return res.status(404).json({
@@ -140,11 +130,7 @@ const excluirAtendimento = async (req, res) => {
             mensagem: 'Atendimento excluído com sucesso!'
         });
     } catch (error) {
-        console.error('Erro ao excluir atendimento:', error);
-
-        return res.status(500).json({
-            erro: 'Erro ao excluir atendimento.'
-        });
+        return responderErro(res, error, 'Erro ao excluir atendimento.');
     }
 };
 
@@ -153,5 +139,6 @@ module.exports = {
     listarAtendimentos,
     buscarAtendimentoPorId,
     atualizarAtendimento,
+    cancelarAtendimento,
     excluirAtendimento
 };

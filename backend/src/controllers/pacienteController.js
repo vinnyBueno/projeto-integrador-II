@@ -81,6 +81,32 @@ const buscarPacientePorId = async (req, res) => {
     }
 };
 
+
+// READ: buscar por CPF
+const buscarPacientePorCpf = async (req, res) => {
+    try {
+        const paciente = await Paciente.buscarPorCpf(req.params.cpf);
+
+        if (!paciente) {
+            return res.status(404).json({
+                erro: 'Paciente não encontrado.'
+            });
+        }
+
+        return res.status(200).json(paciente);
+    } catch (error) {
+        console.error('Erro ao buscar paciente por CPF:', error);
+
+        const status = statusErroValidacao(error);
+
+        return res.status(status).json({
+            erro: status === 500
+                ? 'Erro ao buscar paciente.'
+                : error.message
+        });
+    }
+};
+
 // UPDATE
 const atualizarPaciente = async (req, res) => {
     try {
@@ -152,6 +178,7 @@ module.exports = {
     cadastrarPaciente,
     listarPacientes,
     buscarPacientePorId,
+    buscarPacientePorCpf,
     atualizarPaciente,
     excluirPaciente
 };

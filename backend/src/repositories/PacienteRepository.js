@@ -97,6 +97,16 @@ class PacienteRepository {
         return resultado.rows[0] || null;
     }
 
+    // READ: buscar por CPF (só números)
+    static async buscarPorCpf(cpf) {
+        const resultado = await executar(
+            `SELECT ${COLUNAS} FROM PACIENTE WHERE CPF = :cpf`,
+            { cpf }
+        );
+
+        return resultado.rows[0] || null;
+    }
+
     // UPDATE: atualizar paciente
     static async atualizar(id, dados) {
         const resultado = await executar(

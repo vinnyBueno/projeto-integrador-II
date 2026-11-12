@@ -153,6 +153,17 @@ class Paciente {
         return await PacienteRepository.buscarPorId(Number(id));
     }
 
+    // READ: buscar por CPF (aceita com ou sem pontuação)
+    static async buscarPorCpf(cpf) {
+        const digitos = this.somenteDigitos(cpf);
+
+        if (digitos.length !== 11) {
+            throw new Error('CPF inválido. Informe 11 números.');
+        }
+
+        return await PacienteRepository.buscarPorCpf(digitos);
+    }
+
     // UPDATE
     static async atualizar(id, dados) {
         id = Number(id);

@@ -6,10 +6,11 @@ const {
     listarAtendimentos,
     buscarAtendimentoPorId,
     atualizarAtendimento,
+    cancelarAtendimento,
     excluirAtendimento
 } = require('../controllers/atendimentoController');
 
-// rota para criar um novo atendimento
+// rota para abrir um novo atendimento
 router.post('/cadastrar', cadastrarAtendimento);
 
 // rota para listar todos os atendimentos
@@ -20,6 +21,9 @@ router.get('/buscar/:id', buscarAtendimentoPorId);
 
 // rota para atualizar um atendimento por ID
 router.put('/atualizar/:id', atualizarAtendimento);
+
+// rota para cancelar um atendimento por ID
+router.put('/cancelar/:id', cancelarAtendimento);
 
 // rota para excluir um atendimento por ID
 router.delete('/excluir/:id', excluirAtendimento);

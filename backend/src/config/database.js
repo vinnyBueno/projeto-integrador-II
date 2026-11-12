@@ -1,5 +1,7 @@
-
 const oracledb = require('oracledb');
+
+// Fuso da sessão do Oracle: horário de Brasília
+process.env.ORA_SDTZ = process.env.ORA_SDTZ || 'America/Sao_Paulo';
 
 oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 
