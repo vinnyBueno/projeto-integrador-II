@@ -3,11 +3,15 @@
   if (!sessao) return;
 
   const ui = MedFlowUI;
-  const api = MedFlowAPI;
+  // Dados vêm do backend (Oracle) pelo cliente da API.
+  const api = MedFlowRemoto;
 
   let aba = "fila";
   let termo = "";
   let prioridade = "";
+  // Últimas listas recebidas do servidor; filtros e busca usam estas.
+  let fila = [];
+  let medico = [];
 
   ui.montarChrome("inicio", sessao);
 
@@ -43,22 +47,29 @@
 
   document
     .getElementById("btn-atualizar")
-    .addEventListener("click", function () {
-      render();
-      ui.toast("Lista atualizada.", "ok");
+    .addEventListener("click", async function () {
+      if (await carregar()) ui.toast("Lista atualizada.", "ok");
     });
 
-  document.getElementById("btn-reset").addEventListener("click", function () {
-    if (
-      !window.confirm(
-        "Excluir todos os pacientes e atendimentos? Esta ação não pode ser desfeita.",
-      )
-    )
-      return;
-    api.excluirDados();
+  // Busca as duas listas no servidor e redesenha. Devolve true se deu certo.
+  async function carregar() {
+    try {
+      const resultado = await Promise.all([
+        api.listarParaTriagem(),
+        api.listarFilaMedica(),
+      ]);
+      fila = resultado[0];
+      medico = resultado[1];
+    } catch (erro) {
+      lista.innerHTML =
+        '<tr><td colspan="7"><div class="empty">' +
+        ui.esc(erro.message) +
+        "</div></td></tr>";
+      return false;
+    }
     render();
-    ui.toast("Dados de demonstração restaurados.", "ok");
-  });
+    return true;
+  }
 
   function corresponde(item) {
     if (
@@ -210,8 +221,6 @@
         render();
       }),
     );
-    const fila = api.listarParaTriagem();
-    const medico = api.listarFilaMedica();
     document.getElementById("qtd-fila").textContent = fila.length;
     document.getElementById("qtd-medico").textContent = medico.length;
 
@@ -237,6 +246,6 @@
       encodeURIComponent(alvo.getAttribute("data-abrir"));
   });
 
-  render();
-  setInterval(render, 30000);
+  carregar();
+  setInterval(carregar, 30000);
 })();

@@ -1,24 +1,38 @@
-﻿(function () {
+﻿(async function () {
   const sessao = MedFlowSessao.exigir(["medico"]);
   if (!sessao) return;
   const ui = MedFlowUI;
   ui.montarChrome("historico", sessao);
   const host = document.getElementById("conteudo-prontuario");
   const pacienteId = new URLSearchParams(location.search).get("paciente");
-  const registros = MedFlowAPI.listarAtendimentosRecepcao().filter(
-    function (item) {
-      const consulta = item.atendimentoMedico;
-      return (
-        String(item.pacienteId) === pacienteId &&
-        consulta &&
-        (consulta.medicoEmail
-          ? consulta.medicoEmail === sessao.email
-          : consulta.medico === sessao.nome)
-      );
-    },
-  );
   const voltar =
     '<p><a class="ghost" href="historico.html">← Voltar ao histórico</a></p>';
+
+  if (!pacienteId) {
+    host.innerHTML =
+      voltar + '<div class="empty">Selecione um paciente no histórico.</div>';
+    return;
+  }
+
+  // Atendimentos do paciente vindos do backend (Oracle).
+  let atendimentos;
+  try {
+    atendimentos = await MedFlowRemoto.listarDoPaciente(pacienteId);
+  } catch (erro) {
+    host.innerHTML =
+      voltar + '<div class="empty">' + ui.esc(erro.message) + "</div>";
+    return;
+  }
+
+  const registros = atendimentos.filter(function (item) {
+    const consulta = item.atendimentoMedico;
+    return (
+      consulta &&
+      (consulta.medicoEmail
+        ? consulta.medicoEmail === sessao.email
+        : consulta.medico === sessao.nome)
+    );
+  });
   if (!registros.length) {
     host.innerHTML =
       voltar +

@@ -3,32 +3,37 @@
   if (!sessao) return;
 
   const ui = MedFlowUI;
-  const api = MedFlowAPI;
+  // Dados vêm do backend (Oracle) pelo cliente da API.
+  const api = MedFlowRemoto;
   ui.montarChrome("inicio", sessao);
 
   const cards = document.getElementById("cards-manchester");
   const lista = document.getElementById("lista-fila");
   const busca = document.getElementById("busca-global");
   let termo = "";
+  // Última fila recebida do servidor; a busca filtra aqui.
+  let fila = [];
 
   document
     .getElementById("btn-atualizar")
-    .addEventListener("click", function () {
-      render();
-      ui.toast("Fila atualizada.", "ok");
+    .addEventListener("click", async function () {
+      if (await carregar()) ui.toast("Fila atualizada.", "ok");
     });
 
-  document.getElementById("btn-reset").addEventListener("click", function () {
-    if (
-      !window.confirm(
-        "Excluir todos os pacientes e atendimentos? Esta ação não pode ser desfeita.",
-      )
-    )
-      return;
-    api.excluirDados();
+  // Busca a fila no servidor e redesenha. Devolve true se deu certo.
+  async function carregar() {
+    try {
+      fila = await api.listarFilaMedica();
+    } catch (erro) {
+      lista.innerHTML =
+        '<tr><td colspan="7"><div class="empty">' +
+        ui.esc(erro.message) +
+        "</div></td></tr>";
+      return false;
+    }
     render();
-    ui.toast("Dados de demonstração restaurados.", "ok");
-  });
+    return true;
+  }
 
   if (busca) {
     busca.addEventListener("input", function () {
@@ -37,21 +42,23 @@
     });
   }
 
-  lista.addEventListener("click", function (e) {
+  lista.addEventListener("click", async function (e) {
     const botao = e.target.closest("[data-iniciar]");
     if (!botao) return;
+    // O número do atendimento é o próprio ID no banco.
+    const numero = botao.getAttribute("data-iniciar");
+    botao.disabled = true;
     try {
-      const item = api.obterPorNumero(botao.getAttribute("data-iniciar"));
-      api.iniciarAtendimentoMedico(item.id);
+      await api.iniciarAtendimentoMedico(numero);
       window.location.href =
-        "atendimento.html?atendimento=" + encodeURIComponent(item.numero);
+        "atendimento.html?atendimento=" + encodeURIComponent(numero);
     } catch (erro) {
+      botao.disabled = false;
       ui.toast(erro.message, "erro");
     }
   });
 
   function render() {
-    const fila = api.listarFilaMedica();
     const espera = fila.filter(function (a) {
       return a.status === api.STATUS.AGUARDANDO_ATENDIMENTO_MEDICO;
     });
@@ -160,6 +167,6 @@
       .join("");
   }
 
-  render();
-  setInterval(render, 10000);
+  carregar();
+  setInterval(carregar, 10000);
 })();

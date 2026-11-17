@@ -1,6 +1,6 @@
 /**
  * Cliente da API do backend (fetch).
- * Usado pela tela de recepção no lugar da simulação em localStorage (js/api.js).
+ * Usado por todas as telas para ler e gravar dados no backend.
  * Todas as funções são assíncronas: use sempre com await.
  */
 (function (global) {
@@ -110,17 +110,64 @@
     };
   }
 
-  // Atendimento do backend -> formato da tela (com prioridade pela espera)
+  // Constantes compartilhadas (definidas em js/api.js).
+  const STATUS = global.MedFlowAPI.STATUS;
+  const MANCHESTER = global.MedFlowAPI.MANCHESTER;
+  const idadeDe = global.MedFlowAPI.idadeDe;
+
+  function protocoloDaCor(cor) {
+    return (
+      MANCHESTER.filter(function (m) {
+        return m.cor === cor;
+      })[0] || null
+    );
+  }
+
+  // Protocolo efetivo: se o paciente passou do prazo da cor, sobe de prioridade.
+  function protocoloComEspera(cor, espera) {
+    const protocolo = protocoloDaCor(cor);
+    if (!protocolo) return null;
+    const limite = { laranja: 10, amarelo: 60, verde: 120, azul: 240 }[
+      protocolo.cor
+    ];
+    if (limite && espera >= limite) {
+      return MANCHESTER[
+        Math.max(0, protocolo.ordem - 1 - Math.floor(espera / limite))
+      ];
+    }
+    return protocolo;
+  }
+
+  // Atendimento do backend -> formato da tela (com prioridade pela espera,
+  // idade do paciente e dados do Protocolo de Manchester).
   function atendimentoDoServidor(a) {
     if (!a) return null;
     const espera = a.tempoEsperaMin || 0;
+    const p = a.paciente || {};
+    const classificacao = a.classificacao
+      ? Object.assign({}, protocoloDaCor(a.classificacao.cor), a.classificacao)
+      : null;
     return Object.assign({}, a, {
-      paciente: Object.assign({}, a.paciente, {
-        cpf: formatarCpf(a.paciente && a.paciente.cpf),
+      paciente: Object.assign({}, p, {
+        cpf: formatarCpf(p.cpf),
+        sexo: p.genero || "",
+        idade: idadeDe(p.dataNascimento),
+        telefone: formatarTelefone(p.telefone),
+        telefoneEmergencia: formatarTelefone(p.telefoneEmergencia),
+        convenio: p.convenio || "",
       }),
       prioridadeRecepcao:
         espera >= 30 ? "Alta" : espera >= 15 ? "Média" : "Baixa",
+      classificacao: classificacao,
+      protocolo: classificacao
+        ? protocoloComEspera(classificacao.cor, espera)
+        : null,
+      medicacoes: a.medicacoes || [],
     });
+  }
+
+  function porCriacao(a, b) {
+    return new Date(a.criadoEm) - new Date(b.criadoEm);
   }
 
   // Quando o backend responde 404, devolve null em vez de lançar erro.
@@ -206,7 +253,137 @@
     return atendimentoDoServidor(a);
   }
 
+  // Lista atendimentos nos status informados (lista vazia = todos).
+  async function listarPorStatus(statuses) {
+    const filtro = statuses.length
+      ? "?status=" + encodeURIComponent(statuses.join(","))
+      : "";
+    const lista = await requisitar("GET", "/atendimentos/listar" + filtro);
+    return lista.map(atendimentoDoServidor);
+  }
+
+  // ---- Triagem (enfermagem) ----
+
+  async function listarParaTriagem() {
+    const lista = await listarPorStatus([
+      STATUS.AGUARDANDO_TRIAGEM,
+      STATUS.EM_TRIAGEM,
+    ]);
+    return lista.sort(porCriacao);
+  }
+
+  // Ações que respondem { mensagem, atendimento }: devolve só o atendimento.
+  async function acao(metodo, caminho, corpo) {
+    const resposta = await requisitar(metodo, caminho, corpo);
+    return atendimentoDoServidor(resposta.atendimento);
+  }
+
+  function iniciarTriagem(atendimentoId) {
+    return acao("PUT", "/atendimentos/iniciar-triagem/" + atendimentoId);
+  }
+
+  function salvarTriagem(atendimentoId, dados) {
+    const usuario = global.MedFlowSessao && global.MedFlowSessao.obter();
+    return acao(
+      "PUT",
+      "/atendimentos/triagem/" + atendimentoId,
+      Object.assign({}, dados, { enfermeira: usuario ? usuario.nome : null }),
+    );
+  }
+
+  function salvarClassificacao(atendimentoId, cor) {
+    return acao("PUT", "/atendimentos/classificacao/" + atendimentoId, {
+      cor: cor,
+    });
+  }
+
+  // ---- Fila e consulta médica ----
+
+  async function listarFilaMedica() {
+    const lista = await listarPorStatus([
+      STATUS.AGUARDANDO_ATENDIMENTO_MEDICO,
+      STATUS.EM_ATENDIMENTO_MEDICO,
+    ]);
+    return lista.sort(function (a, b) {
+      const ordemA = a.protocolo ? a.protocolo.ordem : 99;
+      const ordemB = b.protocolo ? b.protocolo.ordem : 99;
+      if (ordemA !== ordemB) return ordemA - ordemB;
+      return porCriacao(a, b);
+    });
+  }
+
+  function iniciarAtendimentoMedico(atendimentoId) {
+    const usuario = global.MedFlowSessao && global.MedFlowSessao.obter();
+    if (!usuario) {
+      return Promise.reject(
+        new Error("Entre novamente para registrar o atendimento."),
+      );
+    }
+    return acao("PUT", "/atendimentos/iniciar-consulta/" + atendimentoId, {
+      medico: usuario.nome,
+      medicoEmail: usuario.email,
+    });
+  }
+
+  function salvarConsultaMedica(atendimentoId, anotacoes) {
+    return acao("PUT", "/atendimentos/consulta/" + atendimentoId, {
+      anotacoes: anotacoes,
+    });
+  }
+
+  function adicionarMedicacao(atendimentoId, dados) {
+    return acao("POST", "/atendimentos/medicacoes/" + atendimentoId, dados);
+  }
+
+  function removerMedicacao(atendimentoId, medicacaoId) {
+    return acao(
+      "DELETE",
+      "/atendimentos/medicacoes/" + atendimentoId + "/" + medicacaoId,
+    );
+  }
+
+  // Grava as anotações (se vierem) e encerra o atendimento.
+  function confirmarAtendimentoMedico(atendimentoId, anotacoes) {
+    return acao("PUT", "/atendimentos/finalizar/" + atendimentoId, {
+      anotacoes: anotacoes,
+    });
+  }
+
+  // ---- Histórico e prontuário ----
+
+  async function listarHistorico() {
+    const lista = await listarPorStatus([STATUS.FINALIZADO, STATUS.CANCELADO]);
+    return lista.sort(function (a, b) {
+      return (
+        new Date(b.atualizadoEm || b.criadoEm) -
+        new Date(a.atualizadoEm || a.criadoEm)
+      );
+    });
+  }
+
+  async function listarDoPaciente(pacienteId) {
+    const lista = await requisitar(
+      "GET",
+      "/atendimentos/listar?paciente=" + encodeURIComponent(pacienteId),
+    );
+    return lista.map(atendimentoDoServidor);
+  }
+
   global.MedFlowRemoto = {
+    STATUS: STATUS,
+    MANCHESTER: MANCHESTER,
+    listarParaTriagem: listarParaTriagem,
+    iniciarTriagem: iniciarTriagem,
+    salvarTriagem: salvarTriagem,
+    salvarClassificacao: salvarClassificacao,
+    listarFilaMedica: listarFilaMedica,
+    iniciarAtendimentoMedico: iniciarAtendimentoMedico,
+    salvarConsultaMedica: salvarConsultaMedica,
+    adicionarMedicacao: adicionarMedicacao,
+    removerMedicacao: removerMedicacao,
+    confirmarAtendimentoMedico: confirmarAtendimentoMedico,
+    listarHistorico: listarHistorico,
+    listarDoPaciente: listarDoPaciente,
     buscarPacientePorCpf: buscarPacientePorCpf,
     buscarPacientePorId: buscarPacientePorId,
     salvarPacienteEAbrirAtendimento: salvarPacienteEAbrirAtendimento,

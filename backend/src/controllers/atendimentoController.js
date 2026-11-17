@@ -45,7 +45,7 @@ const cadastrarAtendimento = async (req, res) => {
 // READ: listar todos
 const listarAtendimentos = async (req, res) => {
     try {
-        const atendimentos = await Atendimento.listarTodos();
+        const atendimentos = await Atendimento.listarTodos(req.query);
 
         return res.status(200).json(atendimentos);
     } catch (error) {
@@ -115,6 +115,102 @@ const cancelarAtendimento = async (req, res) => {
     }
 };
 
+// TRIAGEM: iniciar (AGUARDANDO_TRIAGEM -> EM_TRIAGEM)
+const iniciarTriagem = async (req, res) => {
+    try {
+        const atendimento = await Atendimento.iniciarTriagem(req.params.id);
+
+        return res.status(200).json({
+            mensagem: 'Triagem iniciada.',
+            atendimento
+        });
+    } catch (error) {
+        return responderErro(res, error, 'Erro ao iniciar triagem.');
+    }
+};
+
+// TRIAGEM: salvar sinais vitais e queixas
+const salvarTriagem = async (req, res) => {
+    try {
+        const atendimento = await Atendimento.salvarTriagem(
+            req.params.id,
+            req.body
+        );
+
+        return res.status(200).json({
+            mensagem: 'Triagem registrada com sucesso!',
+            atendimento
+        });
+    } catch (error) {
+        return responderErro(res, error, 'Erro ao salvar triagem.');
+    }
+};
+
+// TRIAGEM: salvar classificação de risco (envia para a fila médica)
+const salvarClassificacao = async (req, res) => {
+    try {
+        const atendimento = await Atendimento.salvarClassificacao(
+            req.params.id,
+            req.body
+        );
+
+        return res.status(200).json({
+            mensagem: 'Classificação registrada. Atendimento enviado à fila médica.',
+            atendimento
+        });
+    } catch (error) {
+        return responderErro(res, error, 'Erro ao salvar classificação.');
+    }
+};
+
+// Cria um handler que chama o model e responde 200 com { mensagem, atendimento }.
+function acaoMedica(executar, mensagemOk, mensagemErro) {
+    return async (req, res) => {
+        try {
+            const atendimento = await executar(req);
+
+            return res.status(200).json({ mensagem: mensagemOk, atendimento });
+        } catch (error) {
+            return responderErro(res, error, mensagemErro);
+        }
+    };
+}
+
+// MÉDICO: abrir/retomar consulta (corpo: { medico, medicoEmail })
+const iniciarConsulta = acaoMedica(
+    req => Atendimento.iniciarConsulta(req.params.id, req.body),
+    'Atendimento médico iniciado.',
+    'Erro ao iniciar atendimento médico.'
+);
+
+// MÉDICO: salvar anotações (corpo: { anotacoes })
+const salvarConsulta = acaoMedica(
+    req => Atendimento.salvarConsulta(req.params.id, req.body),
+    'Anotações registradas.',
+    'Erro ao salvar anotações da consulta.'
+);
+
+// MÉDICO: adicionar medicação (corpo: { nome, dose, via, frequencia })
+const adicionarMedicacao = acaoMedica(
+    req => Atendimento.adicionarMedicacao(req.params.id, req.body),
+    'Medicação incluída.',
+    'Erro ao incluir medicação.'
+);
+
+// MÉDICO: remover medicação
+const removerMedicacao = acaoMedica(
+    req => Atendimento.removerMedicacao(req.params.id, req.params.idMedicacao),
+    'Medicação removida.',
+    'Erro ao remover medicação.'
+);
+
+// MÉDICO: confirmar e finalizar (corpo opcional: { anotacoes })
+const finalizarAtendimento = acaoMedica(
+    req => Atendimento.finalizar(req.params.id, req.body),
+    'Atendimento concluído.',
+    'Erro ao finalizar atendimento.'
+);
+
 // DELETE
 const excluirAtendimento = async (req, res) => {
     try {
@@ -140,5 +236,13 @@ module.exports = {
     buscarAtendimentoPorId,
     atualizarAtendimento,
     cancelarAtendimento,
+    iniciarTriagem,
+    salvarTriagem,
+    salvarClassificacao,
+    iniciarConsulta,
+    salvarConsulta,
+    adicionarMedicacao,
+    removerMedicacao,
+    finalizarAtendimento,
     excluirAtendimento
 };
