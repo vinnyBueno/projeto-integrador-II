@@ -6,20 +6,21 @@ const {
     cadastrarFuncao,
     listarFuncoes,
     buscarFuncaoPorId,
-    atualizarFuncao
+    atualizarFuncao,
+    excluirFuncao
 } = require('../controllers/funcaoController');
 
-const { autenticarToken, autorizarFuncoes } = require('../middlewares/authMiddleware');
+// CREATE
+router.post('/cadastrar', cadastrarFuncao);
 
-// CREATE: somente recepcionista pode cadastrar uma nova função
-router.post('/cadastrar', autenticarToken, autorizarFuncoes('RECEPCIONISTA'), cadastrarFuncao);
+// READ
+router.get('/listar', listarFuncoes);
+router.get('/buscar/:id', buscarFuncaoPorId);
 
-// READ: todas as funções podem listar e buscar funções
-router.get('/listar', autenticarToken, autorizarFuncoes('RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'), listarFuncoes);
+// UPDATE
+router.put('/atualizar/:id', atualizarFuncao);
 
-router.get('/buscar/:id', autenticarToken, autorizarFuncoes('RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'), buscarFuncaoPorId);
-
-// UPDATE: somente recepcionista pode atualizar dados das funções
-router.put('/atualizar/:id', autenticarToken, autorizarFuncoes('RECEPCIONISTA'), atualizarFuncao);
+// DELETE
+router.delete('/excluir/:id', excluirFuncao);
 
 module.exports = router;

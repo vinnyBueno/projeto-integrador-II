@@ -1,10 +1,11 @@
 function logger(req, res, next) {
-    console.time('Requisição');
+    // Cada requisição mede o próprio tempo, mesmo quando chegam várias juntas.
+    const inicio = Date.now();
     console.log(`Método: ${req.method}; URL: ${req.url}`);
 
     res.on('finish', () => {
         console.log('Finalizou');
-        console.timeEnd('Requisição');
+        console.log(`Requisição: ${Date.now() - inicio}ms`);
     });
 
     next();

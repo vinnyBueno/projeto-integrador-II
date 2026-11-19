@@ -1,4 +1,3 @@
-
 const express = require('express');
 const router = express.Router();
 
@@ -6,20 +5,57 @@ const {
     cadastrarAtendimento,
     listarAtendimentos,
     buscarAtendimentoPorId,
-    atualizarAtendimento
+    atualizarAtendimento,
+    cancelarAtendimento,
+    iniciarTriagem,
+    salvarTriagem,
+    salvarClassificacao,
+    iniciarConsulta,
+    salvarConsulta,
+    adicionarMedicacao,
+    removerMedicacao,
+    finalizarAtendimento,
+    excluirAtendimento
 } = require('../controllers/atendimentoController');
 
-const { autenticarToken, autorizarFuncoes } = require('../middlewares/authMiddleware');
+// rota para abrir um novo atendimento
+router.post('/cadastrar', cadastrarAtendimento);
 
-// CREATE: somente recepcionista pode cadastrar um novo atendimento
-router.post('/cadastrar', autenticarToken, autorizarFuncoes('RECEPCIONISTA'), cadastrarAtendimento);
+// rota para listar todos os atendimentos
+router.get('/listar', listarAtendimentos);
 
-// READ: todas as funções podem listar e buscar atendimentos
-router.get('/listar', autenticarToken, autorizarFuncoes('RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'), listarAtendimentos);
+// rota para buscar um atendimento por ID
+router.get('/buscar/:id', buscarAtendimentoPorId);
 
-router.get('/buscar/:id', autenticarToken, autorizarFuncoes('RECEPCIONISTA', 'MEDICO', 'ENFERMEIRO'), buscarAtendimentoPorId);
+// rota para atualizar um atendimento por ID
+router.put('/atualizar/:id', atualizarAtendimento);
 
-// UPDATE: todas as funções envolvidas no atendimento podem atualizar o atendimento
-router.put('/atualizar/:id', autenticarToken, autorizarFuncoes('RECEPCIONISTA', 'ENFERMEIRO', 'MEDICO'), atualizarAtendimento);
+// rota para cancelar um atendimento por ID
+router.put('/cancelar/:id', cancelarAtendimento);
+
+// rota para a enfermagem iniciar a triagem
+router.put('/iniciar-triagem/:id', iniciarTriagem);
+
+// rota para registrar sinais vitais e queixas da triagem
+router.put('/triagem/:id', salvarTriagem);
+
+// rota para registrar a classificação de risco (Manchester)
+router.put('/classificacao/:id', salvarClassificacao);
+
+// rota para o médico abrir (ou retomar) a consulta
+router.put('/iniciar-consulta/:id', iniciarConsulta);
+
+// rota para registrar as anotações da consulta
+router.put('/consulta/:id', salvarConsulta);
+
+// rotas para incluir e remover medicações da consulta
+router.post('/medicacoes/:id', adicionarMedicacao);
+router.delete('/medicacoes/:id/:idMedicacao', removerMedicacao);
+
+// rota para confirmar e finalizar o atendimento
+router.put('/finalizar/:id', finalizarAtendimento);
+
+// rota para excluir um atendimento por ID
+router.delete('/excluir/:id', excluirAtendimento);
 
 module.exports = router;

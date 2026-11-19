@@ -1,8 +1,4 @@
 ﻿(function (global) {
-  const raizFrontend = new URL("../", document.currentScript.src);
-  function rota(caminho) {
-    return new URL(caminho, raizFrontend).href;
-  }
   // Acesso demonstrativo do frontend; substituir pela API do grupo na integração.
   const chave = "medflow.sessao.demo";
   const perfis = [
@@ -11,7 +7,7 @@
       nome: "Recepcionista",
       id: "recepcao",
       cargo: "Recepcionista",
-      inicio: rota("recepcionista/recepcao.html"),
+      inicio: "recepcao.html",
       iniciais: "RE",
     },
     {
@@ -19,7 +15,7 @@
       nome: "Enfermeira(o)",
       id: "enfermagem",
       cargo: "Enfermagem",
-      inicio: rota("enfermeiro/pacientes.html"),
+      inicio: "pacientes.html",
       iniciais: "EN",
     },
     {
@@ -27,7 +23,7 @@
       nome: "Médico(a)",
       id: "medico",
       cargo: "Médico",
-      inicio: rota("medico/fila.html"),
+      inicio: "fila.html",
       iniciais: "ME",
     },
   ];
@@ -51,7 +47,7 @@
   function exigir(perfisPermitidos) {
     const usuario = obter();
     if (!usuario) {
-      global.location.replace(rota("login/index.html"));
+      global.location.replace("index.html");
       return null;
     }
     if (perfisPermitidos && !perfisPermitidos.includes(usuario.id)) {

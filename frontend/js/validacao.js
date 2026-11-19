@@ -1,6 +1,6 @@
 ﻿/**
- * Validações usadas nas telas. As mesmas regras são aplicadas
- * antes de gravar na camada de dados (js/api.js).
+ * Validações usadas nas telas. O backend aplica as mesmas regras
+ * antes de gravar no banco.
  */
 (function (global) {
   const FAIXAS = {
@@ -213,7 +213,7 @@
     if (!emergencia.ok) erros.telefoneEmergencia = emergencia.mensagem;
     else limpo.telefoneEmergencia = emergencia.valor;
     const camposExtras = {
-      rg: 12,
+      rg: 20,
       nomePai: 80,
       nomeMae: 80,
       cep: 9,

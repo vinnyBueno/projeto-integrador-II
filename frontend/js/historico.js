@@ -3,18 +3,21 @@
   if (!sessao) return;
 
   const ui = MedFlowUI;
-  const api = MedFlowAPI;
+  // Dados vêm do backend (Oracle) pelo cliente da API.
+  const api = MedFlowRemoto;
   ui.montarChrome("historico", sessao);
 
   const lista = document.getElementById("lista-historico");
   const busca = document.getElementById("busca-global");
   let termo = "";
+  // Último histórico recebido do servidor; a busca filtra aqui.
+  let historico = [];
   const medico = sessao.id === "medico";
   document
     .getElementById("coluna-prontuario")
     .classList.toggle("hidden", !medico);
 
-  document.getElementById("btn-atualizar").addEventListener("click", render);
+  document.getElementById("btn-atualizar").addEventListener("click", carregar);
 
   if (busca) {
     busca.addEventListener("input", function () {
@@ -23,8 +26,21 @@
     });
   }
 
+  async function carregar() {
+    try {
+      historico = await api.listarHistorico();
+    } catch (erro) {
+      lista.innerHTML =
+        '<tr><td colspan="7"><div class="empty">' +
+        ui.esc(erro.message) +
+        "</div></td></tr>";
+      return;
+    }
+    render();
+  }
+
   function render() {
-    const fonte = api.listarHistorico().filter(function (item) {
+    const fonte = historico.filter(function (item) {
       if (!termo) return true;
       const blob = (
         item.paciente.nome +
@@ -70,7 +86,7 @@
               (item.atendimentoMedico.medicoEmail
                 ? item.atendimentoMedico.medicoEmail === sessao.email
                 : item.atendimentoMedico.medico === sessao.nome)
-                ? '<a class="ghost" href="medico/prontuario.html?paciente=' +
+                ? '<a class="ghost" href="prontuario.html?paciente=' +
                   encodeURIComponent(item.pacienteId) +
                   '">Ver prontuário</a>'
                 : "—") +
@@ -82,5 +98,5 @@
       .join("");
   }
 
-  render();
+  carregar();
 })();

@@ -1,4 +1,5 @@
-const bcrypt = require('bcrypt');
+
+const bcrypt = require('bcryptjs');
 const ProfissionalRepository = require('../repositories/ProfissionalRepository');
 
 class Profissional {
@@ -233,48 +234,6 @@ class Profissional {
 
         return await ProfissionalRepository.excluir(id);
     }
-
-    // AUTH: autenticar profissional
-    static async autenticar(email, senha) {
-        if (
-            !email ||
-            !senha ||
-            typeof email !== 'string' ||
-            typeof senha !== 'string'
-        ) {
-            throw new Error('E-mail e senha são obrigatórios.');
-        }
-
-        // Busca o profissional pelo e-mail
-        const profissional = await ProfissionalRepository.buscarPorEmail(
-            email.trim()
-        );
-
-        // Verifica se o profissional existe
-        if (!profissional) {
-            return null;
-        }
-
-        // Compara a senha informada com o hash armazenado
-        const senhaValida = await bcrypt.compare(
-            senha,
-            profissional.senhaHash
-        );
-
-        if (!senhaValida) {
-            return null;
-        }
-
-        // Retorna somente os dados necessários
-        return {
-            id: profissional.id,
-            nome: profissional.nome,
-            email: profissional.email,
-            idFuncao: profissional.idFuncao,
-            nomeFuncao: profissional.nomeFuncao
-        };
-    }
-
 }
 
 module.exports = Profissional;

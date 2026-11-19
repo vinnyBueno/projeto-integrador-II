@@ -1,9 +1,10 @@
-﻿(function () {
+﻿(async function () {
   const sessao = MedFlowSessao.exigir(["medico"]);
   if (!sessao) return;
 
   const ui = MedFlowUI;
-  const api = MedFlowAPI;
+  // Dados vêm do backend (Oracle) pelo cliente da API.
+  const api = MedFlowRemoto;
   const validar = MedFlowValidacao;
   ui.montarChrome("atendimentos", sessao);
 
@@ -19,10 +20,13 @@
 
   let atendimento;
   try {
-    atendimento = api.obterPorNumero(numero);
+    atendimento = await api.obterPorNumero(numero);
     if (!atendimento) throw new Error("Atendimento não encontrado.");
-    if (atendimento.status !== api.STATUS.FINALIZADO) {
-      atendimento = api.iniciarAtendimentoMedico(atendimento.id);
+    if (
+      atendimento.status !== api.STATUS.FINALIZADO &&
+      atendimento.status !== api.STATUS.CANCELADO
+    ) {
+      atendimento = await api.iniciarAtendimentoMedico(atendimento.id);
     }
   } catch (erro) {
     host.innerHTML = '<div class="empty">' + ui.esc(erro.message) + "</div>";
@@ -34,7 +38,16 @@
 
   function render() {
     const p = atendimento.paciente;
-    const consulta = atendimento.atendimentoMedico || { anotacoes: "" };
+    const consulta = Object.assign(
+      { anotacoes: "" },
+      atendimento.atendimentoMedico,
+    );
+    // Mantém o texto que o médico está digitando (ainda não salvo)
+    // quando a tela é redesenhada, por exemplo ao incluir medicação.
+    const campoAnotacoes = document.getElementById("anotacoes");
+    if (campoAnotacoes && !somenteLeitura) {
+      consulta.anotacoes = campoAnotacoes.value;
+    }
     const protocolo = atendimento.protocolo;
     const meds = atendimento.medicacoes || [];
     const inicio = consulta.inicioEm
@@ -192,11 +205,12 @@
       document.getElementById("contador-anot").textContent =
         anot.value.length + "/1000";
     });
-    anot.addEventListener("blur", function () {
+    anot.addEventListener("blur", async function () {
+      if (somenteLeitura) return;
       try {
         const r = validar.anotacoes(anot.value);
         if (!r.ok) return;
-        atendimento = api.salvarConsultaMedica(atendimento.id, r.valor);
+        atendimento = await api.salvarConsultaMedica(atendimento.id, r.valor);
       } catch (erro) {
         ui.toast(erro.message, "erro");
       }
@@ -204,7 +218,7 @@
 
     document
       .getElementById("btn-add-med")
-      .addEventListener("click", function () {
+      .addEventListener("click", async function () {
         const resultado = validar.medicacao({
           nome: document.getElementById("busca-med").value,
           dose: document.getElementById("dose").value,
@@ -227,24 +241,31 @@
           );
           return;
         }
+        this.disabled = true;
         try {
-          atendimento = api.adicionarMedicacao(atendimento.id, resultado.dados);
+          atendimento = await api.adicionarMedicacao(
+            atendimento.id,
+            resultado.dados,
+          );
           ui.toast("Medicação incluída.", "ok");
           render();
         } catch (erro) {
+          this.disabled = false;
           ui.toast(erro.message, "erro");
         }
       });
 
     host.querySelectorAll("[data-remover]").forEach(function (b) {
-      b.addEventListener("click", function () {
+      b.addEventListener("click", async function () {
+        b.disabled = true;
         try {
-          atendimento = api.removerMedicacao(
+          atendimento = await api.removerMedicacao(
             atendimento.id,
             Number(b.getAttribute("data-remover")),
           );
           render();
         } catch (erro) {
+          b.disabled = false;
           ui.toast(erro.message, "erro");
         }
       });
@@ -252,7 +273,7 @@
 
     document
       .getElementById("btn-finalizar")
-      .addEventListener("click", function () {
+      .addEventListener("click", async function () {
         const notas = validar.anotacoes(
           document.getElementById("anotacoes").value,
         );
@@ -265,14 +286,17 @@
           ui.toast("Marque a confirmação para encerrar o atendimento.", "erro");
           return;
         }
+        const botao = this;
+        botao.disabled = true;
         try {
-          api.salvarConsultaMedica(atendimento.id, notas.valor);
-          api.confirmarAtendimentoMedico(atendimento.id);
+          // Grava as anotações e encerra numa única chamada.
+          await api.confirmarAtendimentoMedico(atendimento.id, notas.valor);
           ui.toast("Atendimento concluído. O paciente saiu da fila.", "ok");
           setTimeout(function () {
             window.location.href = "fila.html";
           }, 800);
         } catch (erro) {
+          botao.disabled = false;
           ui.toast(erro.message, "erro");
         }
       });

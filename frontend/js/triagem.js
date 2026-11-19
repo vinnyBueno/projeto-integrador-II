@@ -1,9 +1,10 @@
-(function () {
+(async function () {
   const sessao = MedFlowSessao.exigir(["enfermagem"]);
   if (!sessao) return;
 
   const ui = MedFlowUI;
-  const api = MedFlowAPI;
+  // Dados vêm do backend (Oracle) pelo cliente da API.
+  const api = MedFlowRemoto;
   const validar = MedFlowValidacao;
 
   ui.montarChrome("pacientes", sessao);
@@ -20,10 +21,10 @@
 
   let atendimento;
   try {
-    atendimento = api.obterPorNumero(numero);
+    atendimento = await api.obterPorNumero(numero);
     if (!atendimento) throw new Error("Atendimento não encontrado.");
     if (atendimento.status === api.STATUS.AGUARDANDO_TRIAGEM) {
-      atendimento = api.iniciarTriagem(atendimento.id);
+      atendimento = await api.iniciarTriagem(atendimento.id);
     }
   } catch (erro) {
     host.innerHTML = '<div class="empty">' + ui.esc(erro.message) + "</div>";
@@ -255,7 +256,7 @@
     });
   }
 
-  function salvarTriagemParcial() {
+  async function salvarTriagemParcial() {
     const resultado = validar.triagem(coletar());
     mostrarErros(resultado.erros);
     if (!resultado.ok) {
@@ -264,7 +265,7 @@
       return false;
     }
     try {
-      atendimento = api.salvarTriagem(atendimento.id, resultado.dados);
+      atendimento = await api.salvarTriagem(atendimento.id, resultado.dados);
       return true;
     } catch (erro) {
       ui.toast(erro.message, "erro");
@@ -272,8 +273,25 @@
     }
   }
 
-  function salvarTudo() {
-    if (!salvarTriagemParcial()) return;
+  // Desabilita os botões de salvar enquanto o servidor responde.
+  function ocupado(sim) {
+    ["btn-avancar", "btn-salvar-tudo"].forEach(function (id) {
+      const botao = document.getElementById(id);
+      if (botao) botao.disabled = sim;
+    });
+  }
+
+  async function salvarTudo() {
+    ocupado(true);
+    try {
+      await salvarTudoInterno();
+    } finally {
+      ocupado(false);
+    }
+  }
+
+  async function salvarTudoInterno() {
+    if (!(await salvarTriagemParcial())) return;
     const classe = validar.classificacao(corSelecionada);
     const erroBox = document.getElementById("erro-classificacao");
     if (erroBox) erroBox.textContent = classe.ok ? "" : classe.mensagem;
@@ -283,7 +301,10 @@
       return;
     }
     try {
-      atendimento = api.salvarClassificacao(atendimento.id, corSelecionada);
+      atendimento = await api.salvarClassificacao(
+        atendimento.id,
+        corSelecionada,
+      );
       ui.toast("Triagem registrada e atendimento enviado à fila médica.", "ok");
       setTimeout(function () {
         window.location.href = "pacientes.html";
@@ -341,8 +362,11 @@
 
     document
       .getElementById("btn-avancar")
-      .addEventListener("click", function () {
-        if (!salvarTriagemParcial()) return;
+      .addEventListener("click", async function () {
+        ocupado(true);
+        const salvou = await salvarTriagemParcial();
+        ocupado(false);
+        if (!salvou) return;
         irPara("risco");
         ui.toast(
           "Sinais vitais salvos. Selecione a classificação de risco.",

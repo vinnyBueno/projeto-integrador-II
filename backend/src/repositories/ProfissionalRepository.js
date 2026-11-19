@@ -1,3 +1,4 @@
+
 const { executar } = require('../config/database');
 const oracledb = require('oracledb');
 
@@ -39,6 +40,7 @@ class ProfissionalRepository {
         }
 
         const resultado = await executar(sql, binds);
+
         return resultado.rows.length > 0;
     }
 
@@ -182,27 +184,6 @@ class ProfissionalRepository {
 
         return resultado.rowsAffected > 0;
     }
-
-    // AUTH: buscar profissional pelo e-mail para realizar login
-    static async buscarPorEmail(email) {
-        const resultado = await executar(
-            `SELECT
-                P.ID_PROFISSIONAL AS "id",
-                P.NOME AS "nome",
-                P.EMAIL AS "email",
-                P.SENHA AS "senhaHash",
-                P.ID_FUNCAO AS "idFuncao",
-                F.NOME_FUNCAO AS "nomeFuncao"
-            FROM PROFISSIONAL P
-            INNER JOIN FUNCAO F
-                ON P.ID_FUNCAO = F.ID_FUNCAO
-            WHERE LOWER(P.EMAIL) = LOWER(:email)`,
-            { email }
-        );
-
-        return resultado.rows[0] || null;
-    }
-
 }
 
 module.exports = ProfissionalRepository;
