@@ -18,7 +18,21 @@ async function conectarBanco() {
         poolIncrement: 1
     });
 
-    console.log('Conexão com Oracle configurada!');
+    // O pool não testa a conexão ao ser criado: abre uma agora para
+    // o servidor falhar na subida se o banco estiver inacessível.
+    try {
+        const conexao = await pool.getConnection();
+        await conexao.close();
+    } catch (error) {
+        await pool.close(0);
+        pool = null;
+        throw new Error(
+            `Não foi possível conectar ao Oracle em "${process.env.DB_CONNECT_STRING}". ` +
+            `Confira se o banco está ativo e os dados do .env. (${error.message})`
+        );
+    }
+
+    console.log('Conexão com Oracle estabelecida!');
 }
 
 // Executa comandos SQL normalmente
