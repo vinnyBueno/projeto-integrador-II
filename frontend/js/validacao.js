@@ -227,7 +227,7 @@
     Object.keys(camposExtras).forEach(function (campo) {
       const resultado = textoFaixa(
         dados[campo],
-        campo === "nomeMae" ? 3 : campo === "rg" ? 1 : 0,
+        campo === "nomeMae" ? 3 : 0,
         camposExtras[campo],
         campo === "nomeMae"
           ? "O nome da mãe"
