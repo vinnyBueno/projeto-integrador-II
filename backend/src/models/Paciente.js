@@ -1,4 +1,5 @@
 const PacienteRepository = require('../repositories/PacienteRepository');
+const { cpfValido } = require('../utils/validarCpf');
 
 // Campos de texto e o tamanho máximo de cada coluna no banco (tables.sql).
 const LIMITES = {
@@ -65,8 +66,8 @@ class Paciente {
         if (!cpf) {
             throw new Error('CPF do paciente é obrigatório.');
         }
-        if (cpf.length !== 11) {
-            throw new Error('CPF inválido. Informe 11 números.');
+        if (!cpfValido(cpf)) {
+            throw new Error('CPF inválido. Confira os números digitados.');
         }
 
         if (dataNascimento) {

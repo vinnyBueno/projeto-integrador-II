@@ -25,10 +25,26 @@
     return String(valor || "").replace(/\D/g, "");
   }
 
+    function cpfConfere(d) {
+    if (/^(\d)\1{10}$/.test(d)) return false;
+    const digito = function (tamanho) {
+      let soma = 0;
+      for (let i = 0; i < tamanho; i++) {
+        soma += Number(d[i]) * (tamanho + 1 - i);
+      }
+      const resto = (soma * 10) % 11;
+      return resto === 10 ? 0 : resto;
+    };
+    return digito(9) === Number(d[9]) && digito(10) === Number(d[10]);
+  }
+
   function cpf(valor) {
     const d = soDigitos(valor);
     if (d.length !== 11) {
       return { ok: false, mensagem: "Informe um CPF com 11 números." };
+    }
+    if (!cpfConfere(d)) {
+      return { ok: false, mensagem: "CPF inválido. Confira os números digitados." };
     }
     const formatado =
       d.slice(0, 3) +
