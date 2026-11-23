@@ -1178,3 +1178,41 @@ textarea.invalido {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+/* Paginação (histórico) */
+.paginacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+}
+.paginacao.hidden {
+  display: none;
+}
+.paginacao-info {
+  font-size: 13px;
+  color: var(--texto-suave);
+}
+.paginacao-botoes {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.paginacao-botoes .ghost {
+  min-width: 36px;
+  justify-content: center;
+  padding: 7px 12px;
+}
+.paginacao-botoes .ghost.ativo {
+  background: linear-gradient(90deg, #8b1833, #6d1228);
+  border-color: transparent;
+  color: #fff;
+  cursor: default;
+}
+.paginacao-reticencias {
+  color: var(--texto-suave);
+  padding: 0 2px;
+}

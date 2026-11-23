@@ -9,6 +9,10 @@
 
   const lista = document.getElementById("lista-historico");
   const busca = document.getElementById("busca-global");
+  const paginacao = document.getElementById("paginacao");
+  // Quantidade de registros por página
+  const POR_PAGINA = 10;
+  let paginaAtual = 1;
   let termo = "";
   // Último histórico recebido do servidor; a busca filtra aqui.
   let historico = [];
@@ -20,8 +24,9 @@
   document.getElementById("btn-atualizar").addEventListener("click", carregar);
 
   if (busca) {
-    busca.addEventListener("input", function () {
+        busca.addEventListener("input", function () {
       termo = busca.value.trim().toLowerCase();
+      paginaAtual = 1;
       render();
     });
   }
@@ -51,12 +56,21 @@
       ).toLowerCase();
       return blob.indexOf(termo) !== -1;
     });
-    if (!fonte.length) {
+        if (!fonte.length) {
       lista.innerHTML =
         '<tr><td colspan="7"><div class="empty">Nenhum atendimento concluído ou cancelado.</div></td></tr>';
+      renderPaginacao(0, 0);
       return;
     }
-    lista.innerHTML = fonte
+
+    const totalPaginas = Math.ceil(fonte.length / POR_PAGINA);
+    if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+    if (paginaAtual < 1) paginaAtual = 1;
+
+    const inicio = (paginaAtual - 1) * POR_PAGINA;
+    const pagina = fonte.slice(inicio, inicio + POR_PAGINA);
+
+    lista.innerHTML = pagina
       .map(function (item) {
         const quando =
           item.finalizadoEm || item.canceladoEm || item.atualizadoEm;
@@ -95,8 +109,65 @@
           "</tr>"
         );
       })
-      .join("");
+            .join("");
+
+    renderPaginacao(fonte.length, totalPaginas);
+  }
+    function paginasVisiveis(total) {
+    const itens = [];
+    for (let n = 1; n <= total; n++) {
+      if (n === 1 || n === total || Math.abs(n - paginaAtual) <= 2) {
+        itens.push(n);
+      } else if (itens[itens.length - 1] !== "...") {
+        itens.push("...");
+      }
+    }
+    return itens;
   }
 
+  function renderPaginacao(totalRegistros, totalPaginas) {
+    if (totalPaginas <= 1) {
+      paginacao.classList.add("hidden");
+      paginacao.innerHTML = "";
+      return;
+    }
+    paginacao.classList.remove("hidden");
+
+    const de = (paginaAtual - 1) * POR_PAGINA + 1;
+    const ate = Math.min(paginaAtual * POR_PAGINA, totalRegistros);
+
+    const botoes = paginasVisiveis(totalPaginas)
+      .map(function (n) {
+        if (n === "...") {
+          return '<span class="paginacao-reticencias">…</span>';
+        }
+        const ativo = n === paginaAtual;
+        return (
+          '<button type="button" class="ghost' + (ativo ? " ativo" : "") +
+          '" data-pagina="' + n + '"' +
+          (ativo ? ' aria-current="page"' : "") + ">" + n + "</button>"
+        );
+      })
+      .join("");
+
+    paginacao.innerHTML =
+      '<span class="paginacao-info">Mostrando ' + de + "–" + ate +
+      " de " + totalRegistros + " atendimentos</span>" +
+      '<div class="paginacao-botoes">' +
+      '<button type="button" class="ghost" data-pagina="' + (paginaAtual - 1) + '"' +
+      (paginaAtual === 1 ? " disabled" : "") + ">← Anterior</button>" +
+      botoes +
+      '<button type="button" class="ghost" data-pagina="' + (paginaAtual + 1) + '"' +
+      (paginaAtual === totalPaginas ? " disabled" : "") + ">Próxima →</button>" +
+      "</div>";
+  }
+
+    paginacao.addEventListener("click", function (evento) {
+      const botao = evento.target.closest("button[data-pagina]");
+      if (!botao || botao.disabled) return;
+      paginaAtual = Number(botao.dataset.pagina);
+      render();
+      lista.closest(".table-wrap").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   carregar();
 })();
