@@ -5,15 +5,27 @@
   ui.montarChrome("historico", sessao);
   const host = document.getElementById("conteudo-prontuario");
   const pacienteId = new URLSearchParams(location.search).get("paciente");
-  const voltar =
-    '<p><a class="ghost" href="historico.html">← Voltar ao histórico</a></p>';
+    const voltar =
+    '<p><a class="ghost" id="voltar-historico" href="historico.html">← Voltar ao histórico</a></p>';
 
   if (!pacienteId) {
     host.innerHTML =
       voltar + '<div class="empty">Selecione um paciente no histórico.</div>';
     return;
   }
-
+  // Voltar: se veio de outra tela do sistema, usa o histórico do navegador
+  // (reabre na mesma página). Senão, vai para o histórico normalmente.
+  host.addEventListener("click", function (evento) {
+    const link = evento.target.closest("#voltar-historico");
+    if (!link) return;
+    const veioDoSistema =
+      document.referrer &&
+      new URL(document.referrer).origin === location.origin;
+    if (veioDoSistema && history.length > 1) {
+      evento.preventDefault();
+      history.back();
+    }
+  });
   // Atendimentos do paciente vindos do backend (Oracle).
   let atendimentos;
   try {

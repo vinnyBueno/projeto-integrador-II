@@ -12,8 +12,9 @@
   const paginacao = document.getElementById("paginacao");
   // Quantidade de registros por página
   const POR_PAGINA = 10;
-  let paginaAtual = 1;
-  let termo = "";
+  const params = new URLSearchParams(location.search);
+  let paginaAtual = Math.max(parseInt(params.get("pagina"), 10) || 1, 1);
+  let termo = (params.get("busca") || "").trim().toLowerCase();
   // Último histórico recebido do servidor; a busca filtra aqui.
   let historico = [];
   const medico = sessao.id === "medico";
@@ -30,6 +31,8 @@
       render();
     });
   }
+
+  if (busca && termo) busca.value = params.get("busca");
 
   async function carregar() {
     try {
@@ -125,7 +128,22 @@
     return itens;
   }
 
+  // Guarda página e busca na URL (sem recarregar a tela).
+  // Assim, ao voltar do prontuário, a tela reabre no mesmo ponto.
+  function salvarEstado() {
+    try {
+      const p = new URLSearchParams();
+      if (paginaAtual > 1) p.set("pagina", paginaAtual);
+      if (termo) p.set("busca", termo);
+      const qs = p.toString();
+      history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+    } catch (e) {
+      // Se o navegador bloquear (ex.: abrir o arquivo direto), ignora.
+    }
+  }
+
   function renderPaginacao(totalRegistros, totalPaginas) {
+    salvarEstado();
     if (totalPaginas <= 1) {
       paginacao.classList.add("hidden");
       paginacao.innerHTML = "";
